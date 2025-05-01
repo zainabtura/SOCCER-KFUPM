@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delete Tournament</title>
+  <link rel="stylesheet" href="deleteTournament.css" />
+</head>
+<body>
+  <div class="form-container">
+    <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
+    <h1 class="form-title">Delete a tournament</h1>
+    <form class="delete-form" action="AdminHomePage.html">
+      <label for="tournament">Select Tournament</label>
+      <select id="tournament" required>
+        <option value="">Select a tournament</option>
+        <option value="101">101 : Fall Cup</option>
+        <option value="102">102 : Winter League</option>
+      </select>
+
+      <button type="submit" class="submit-button">Delete</button>
+    </form>
+  </div>
+
+  <div class="side-design">
+    <div class="green-bar"></div>
+    <div class="blue-bar"></div>
+  </div>
+  <div class="ball">⚽️</div>
+</body>
+</html>

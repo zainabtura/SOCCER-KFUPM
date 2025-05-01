@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Team to Tournament</title>
+    <link rel="stylesheet" href="addTeam.css" />
+  </head>
+  <body>
+    <div class="form-container">
+      <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
+      <h1 class="form-title">Add a team to a tournament</h1>
+      <form class="team-form" action="AdminHomePage.html">
+        <label for="tournament">Tournament</label>
+        <select id="tournament" required>
+          <option value="">Select Tournament</option>
+          <option value="1">001 : Spring Cup</option>
+          <option value="2">002 : Desert League</option>
+
+        </select>
+
+        <label for="team">Team</label>
+        <select id="team" required>
+          <option value="">Select Team</option>
+          <option value="101">101 : Falcons</option>
+          <option value="102">102 : Eagles</option>
+
+        </select>
+
+        <button type="submit" class="submit-button">Add team</button>
+      </form>
+    </div>
+
+    <div class="side-design">
+      <div class="green-bar"></div>
+      <div class="blue-bar"></div>
+    </div>
+    <div class="ball">⚽️</div>
+  </body>
+</html>

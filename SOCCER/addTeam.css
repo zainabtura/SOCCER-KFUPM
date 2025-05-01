@@ -1,0 +1,111 @@
+/* Reset and base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: white;
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  /* Side design */
+  .side-design {
+    position: absolute;
+    top: 0;
+    right: 100px; /* shift a bit more left */
+    height: 100%;
+    width: 160px; /* adjusted to fit both bars */
+    display: flex;
+    flex-direction: row;
+    z-index: 1;
+  }
+  
+  .green-bar,
+  .blue-bar {
+    height: 100%;
+    width: 60px; /* doubled from 40px */
+  }
+  
+  .green-bar {
+    background-color: #215a37;
+  }
+  
+  .blue-bar {
+    background-color: #01159C;
+  }
+  
+  .ball {
+    position: absolute;
+    right: 90px; /* closer to bars */
+    top: 73%; /* slightly lower */
+    transform: translateY(-50%);
+    font-size: 12rem;
+    z-index: 5;
+  }
+  
+  /* Form container */
+  .form-container {
+    flex: 1;
+    padding: 4rem 8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .back-link {
+    text-decoration: none;
+    color: #01159C;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+  }
+  
+  .form-title {
+    font-size: 3rem;
+    color: #01159C;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+  
+  .team-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
+  }
+  
+  .team-form label {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .team-form select {
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  
+  .submit-button {
+    background-color: #01159C;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-decoration: none;
+    margin-top: 1rem;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+  }
+  
+  .submit-button:hover {
+    background-color: #0d1fac;
+  }
+  

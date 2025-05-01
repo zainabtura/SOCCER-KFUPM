@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Select Captain</title>
+  <link rel="stylesheet" href="selectCaptain.css" />
+</head>
+<body>
+  <div class="form-container">
+    <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
+    <h1 class="form-title">Select a captain for a team</h1>
+    <form class="captain-form" action="AdminHomePage.html">
+      <label for="team">Team</label>
+      <select id="team" required>
+        <option value="">Select Team</option>
+        <option value="101">101 : Falcons</option>
+        <option value="102">102 : Eagles</option>
+      </select>
+
+      <label for="player">Team Member</label>
+      <select id="player" required>
+        <option value="">Select Team Member</option>
+        <option value="201">201 : Ahmed</option>
+        <option value="202">202 : Omar</option>
+      </select>
+
+      <button type="submit" class="submit-button">Assign as Captain</button>
+    </form>
+  </div>
+
+  <div class="side-design">
+    <div class="green-bar"></div>
+    <div class="blue-bar"></div>
+  </div>
+  <div class="ball">⚽️</div>
+</body>
+</html>
