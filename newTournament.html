@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add New Tournament</title>
+    <link rel="stylesheet" href="newTournament.css" />
+  </head>
+  <body>
+    <div class="side-design">
+        <div class="green-bar"></div>
+        <div class="blue-bar"></div>
+        <div class="ball">⚽</div>
+      </div>
+
+    <main class="form-container">
+      <a href="AdminHomePage.html" class="back-link">← home page</a>
+      <h1 class="form-title">Add a new tournament</h1>
+
+      <form class="tournament-form">
+        <label for="tournament-id">Tournament ID</label>
+        <input type="text" id="tournament-id" placeholder="Enter the tournament ID" required />
+
+        <label for="tournament-name">Tournament Name</label>
+        <input type="text" id="tournament-name" placeholder="Enter the tournament name" required />
+
+        <label for="start-date">Start Date</label>
+        <input type="date" id="start-date" required />
+
+        <label for="end-date">End Date</label>
+        <input type="date" id="end-date" required />
+
+        <a href="AdminHomePage.html" class="submit-button">Submit</a>
+      </form>
+    </main>
+  </body>
+</html>

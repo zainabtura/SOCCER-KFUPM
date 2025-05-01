@@ -1,0 +1,77 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: white;
+    padding: 0;
+    position: relative;
+    min-height: 100vh;
+  }
+  
+  /* Keep logout fixed at the top right */
+  .header {
+    position: absolute;
+    top: 1.5rem;
+    right: 2rem;
+    z-index: 10;
+  }
+  
+  .logout-button {
+    background-color: #01159C;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  .logout-button:hover {
+    background-color: #0d1fac;
+  }
+  
+  /* Center the main content perfectly */
+  .admin-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem;
+    gap: 2rem;
+    text-align: center;
+  }
+  
+  .admin-title {
+    font-size: 3.5rem;
+    color: #01159C;
+    font-weight: bold;
+  }
+  
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 2rem;
+    width: 100%;
+    max-width: 900px;
+  }
+  
+  .admin-button {
+    background-color: #01159C;
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 1.3rem;
+    transition: background-color 0.3s ease;
+    text-align: center;
+  }
+  
+  .admin-button:hover {
+    background-color: #0d1fac;
+  }
+  
