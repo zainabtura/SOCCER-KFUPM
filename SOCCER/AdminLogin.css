@@ -1,0 +1,88 @@
+/* Reset and base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: white;
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  /* Form container */
+  .form-container {
+    flex: 1;
+    padding: 4rem 8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .back-link {
+    text-decoration: none;
+    color: #01159C;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+  }
+  
+  .form-title {
+    font-size: 3rem;
+    color: #01159C;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+  
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 500px;
+  }
+  
+  .login-form label {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .login-form input {
+    padding: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+  }
+  
+  .submit-button {
+    background-color: #01159C;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 1rem;
+    text-decoration: none;
+    margin-top: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submit-button:hover {
+    background-color: #0d1fac;
+  }
+  
+  /* Right-side blue overlay triangle */
+  .blue-overlay {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: 50%;
+    background-color: #01159C;
+    clip-path: polygon(100% 0%, 0% 100%, 100% 100%);
+    z-index: 0;
+  }
+  
