@@ -13,10 +13,10 @@ app.use(express.static(path.join(__dirname, "build")));
 
 // MySQL connection
 const db = mysql.createConnection({
-    host: 'projectinst.cjaqmykcmj4t.eu-north-1.rds.amazonaws.com',
+    host: 'database-1.cjaqmykcmj4t.eu-north-1.rds.amazonaws.com',
     user: 'admin',
     password: 'database123*',
-    database: 'projectinst'
+    database: 'mydb'
 });
 
 db.connect(err => {
