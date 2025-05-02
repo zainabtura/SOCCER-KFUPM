@@ -41,8 +41,8 @@
   
   .ball {
     position: absolute;
-    right: 90px; /* closer to bars */
-    top: 73%; /* slightly lower */
+    right: 90px; 
+    top: 73%; 
     transform: translateY(-50%);
     font-size: 12rem;
     z-index: 5;
