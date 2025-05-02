@@ -16,22 +16,83 @@
     <main class="form-container">
       <a href="AdminHomePage.html" class="back-link">← home page</a>
       <h1 class="form-title">Add a new tournament</h1>
-
-      <form class="tournament-form">
+      <form class="tournament-form" id="tournamentForm">
         <label for="tournament-id">Tournament ID</label>
-        <input type="text" id="tournament-id" placeholder="Enter the tournament ID" required />
-
+        <input type="number" id="tournament-id" name="tr_id" required />
+      
         <label for="tournament-name">Tournament Name</label>
-        <input type="text" id="tournament-name" placeholder="Enter the tournament name" required />
-
+        <input type="text" id="tournament-name" name="tr_name" maxlength="40" required />
+      
         <label for="start-date">Start Date</label>
-        <input type="date" id="start-date" required />
-
+        <input type="date" id="start-date" name="start_date" required />
+      
         <label for="end-date">End Date</label>
-        <input type="date" id="end-date" required />
-
-        <a href="AdminHomePage.html" class="submit-button">Submit</a>
+        <input type="date" id="end-date" name="end_date" required />
+      
+        <button type="submit" class="submit-button">Submit</button>
       </form>
     </main>
+
+    <script>
+      document.getElementById("tournamentForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+    
+        const tr_id = document.getElementById("tournament-id").value.trim();
+        const tr_name = document.getElementById("tournament-name").value.trim();
+        const start_date = document.getElementById("start-date").value;
+        const end_date = document.getElementById("end-date").value;
+    
+        // Validate inputs
+        if (isNaN(tr_id)) return alertPopup("Tournament ID must be a number.");
+        if (tr_name.length > 40) return alertPopup("Name must be 40 characters or less.");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(start_date)) return alertPopup("Start date must be in YYYY-MM-DD format.");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(end_date)) return alertPopup("End date must be in YYYY-MM-DD format.");
+    
+        try {
+          const response = await fetch("http://localhost:3000/api/tournaments", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              tr_id: Number(tr_id),
+              tr_name: tr_name,
+              start_date: start_date,
+              end_date: end_date
+            }),
+          });
+    
+          const result = await response.json();
+    
+          if (result.success) {
+            window.location.href = "AdminHomePage.html";
+          } else {
+            alertPopup(result.message || "Something went wrong.");
+          }
+        } catch (err) {
+          alertPopup("Cannot connect to server.");
+        }
+      });
+    
+      function alertPopup(message) {
+        const popup = document.createElement("div");
+        popup.style.position = "fixed";
+        popup.style.top = "50%";
+        popup.style.left = "50%";
+        popup.style.transform = "translate(-50%, -50%)";
+        popup.style.background = "#fff";
+        popup.style.border = "2px solid #01159C";
+        popup.style.padding = "2rem";
+        popup.style.borderRadius = "12px";
+        popup.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+        popup.style.zIndex = 9999;
+        popup.innerHTML = `<p style="margin-bottom: 1rem;">${message}</p>
+                           <button onclick="this.parentElement.remove()" style="padding: 0.5rem 1rem; background: #01159C; color: white; border: none; border-radius: 5px;">Close</button>`;
+        document.body.appendChild(popup);
+      }
+    </script>
+    
+      
+    
   </body>
 </html>

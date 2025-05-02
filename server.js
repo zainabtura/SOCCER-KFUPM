@@ -1,15 +1,19 @@
 const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
+const path = require('path');
+
 const app = express();
 const port = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(express.static(path.join(__dirname, "SOCCER")));
+
+
 // Allow JSON parsing
 app.use(express.json());
-// Serve static files from the build directory
-app.use(express.static(path.join(__dirname, "build")));
+
 
 // MySQL connection
 const db = mysql.createConnection({
@@ -134,10 +138,10 @@ app.get('/api/players-in-match', (req, res) => {
 
 // Tournaments route
 app.get('/api/tournaments', (req, res) => {
-    db.query('SELECT * FROM TOURNAMENT;', (err, result) => {
-        if (err) return res.status(500).send(err);
-        res.json(result);
-    });
+  db.query('SELECT * FROM TOURNAMENT;', (err, result) => {
+    if (err) return res.status(500).send(err);
+    res.json(result);
+  });
 });
 
 // Tournament teams
@@ -158,6 +162,43 @@ app.get('/api/tournament-teams', (req, res) => {
         res.json(result);
     });
 });
+
+
+app.post('/api/tournaments', (req, res) => {
+  const { tr_id, tr_name, start_date, end_date } = req.body;
+
+  if (!tr_id || !tr_name || !start_date || !end_date) {
+    return res.status(400).json({ success: false, message: "All fields are required." });
+  }
+
+  const parsedId = parseInt(tr_id);
+  const checkQuery = 'SELECT * FROM TOURNAMENT WHERE tr_id = ? OR tr_name = ?';
+
+  db.query(checkQuery, [parsedId, tr_name], (err, results) => {
+    if (err) {
+      console.error("Check Query Error:", err);
+      return res.status(500).json({ success: false, message: "Database error during check." });
+    }
+
+    if (results.length > 0) {
+      return res.status(409).json({ success: false, message: "Tournament ID or name already exists." });
+    }
+
+    const insertQuery = 'INSERT INTO TOURNAMENT (tr_id, tr_name, start_date, end_date) VALUES (?, ?, ?, ?)';
+
+    db.query(insertQuery, [parsedId, tr_name, start_date, end_date], (err2) => {
+      if (err2) {
+        console.error("Insert Query Error:", err2);
+        return res.status(500).json({ success: false, message: "Insert failed." });
+      }
+
+      console.log("Tournament inserted successfully.");
+      return res.json({ success: true });
+    });
+  });
+});
+
+
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
