@@ -198,7 +198,39 @@ app.post('/api/tournaments', (req, res) => {
   });
 });
 
+app.get('/api/matches-by-tournament', (req, res) => {
+  const tournamentId = req.query.tr_id;
 
+  if (!tournamentId) {
+    return res.status(400).json({ success: false, message: "Missing tournament ID" });
+  }
+
+  const sql = `
+    SELECT 
+      mp.match_no,
+      t1.team_name AS team1,
+      t2.team_name AS team2,
+      md.goal_score,
+      md.penalty_score,
+      md.win_lose,
+      mp.match_date
+    FROM MATCH_PLAYED mp
+    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+    JOIN MATCH_DETAILS md ON mp.match_no = md.match_no
+    WHERE mp.tr_id = ?
+    ORDER BY mp.match_date ASC;
+  `;
+
+  db.query(sql, [tournamentId], (err, result) => {
+    if (err) {
+      console.error("Error fetching matches:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+
+    res.json(result);
+  });
+});
 
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);

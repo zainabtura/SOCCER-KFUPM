@@ -1,0 +1,94 @@
+/* Reset and base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f5f7fb;
+    display: flex;
+    min-height: 100vh;
+    position: relative;
+  }
+  
+  /* Side design */
+  .side-design {
+    position: absolute;
+    top: 0;
+    right: 100px;
+    height: 100%;
+    width: 160px;
+    display: flex;
+    flex-direction: row;
+    z-index: 1;
+  }
+  
+  .green-bar,
+  .blue-bar {
+    height: 100%;
+    width: 60px;
+  }
+  
+  .green-bar {
+    background-color: #215a37;
+  }
+  
+  .blue-bar {
+    background-color: #01159C;
+  }
+  
+  .ball {
+    position: absolute;
+    right: 0;
+    top: 73%;
+    transform: translateY(-50%);
+    font-size: 12rem;
+    z-index: 5;
+  }
+  
+  /* Page layout */
+  .container {
+    flex: 1;
+    padding: 4rem 6rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .back-link {
+    text-decoration: none;
+    color: #01159C;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    display: inline-block;
+  }
+  
+  .title {
+    font-size: 3rem;
+    color: #01159C;
+    font-weight: bold;
+    margin-bottom: 2rem;
+  }
+  
+  .button-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+  }
+  
+  .menu-button {
+    background-color: #01159C;
+    color: white;
+    padding: 1.5rem;
+    text-align: center;
+    border-radius: 10px;
+    font-size: 1.2rem;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+  }
+  
+  .menu-button:hover {
+    background-color: #0d1fac;
+  }  
