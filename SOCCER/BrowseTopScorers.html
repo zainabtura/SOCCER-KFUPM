@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Top Scorers</title>
+  <link rel="stylesheet" href="BrowseTopScorers.css" />
+</head>
+<body>
+  <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+
+  <main class="container">
+    <h1>Highest Scoring Players</h1>
+
+    <table id="scorersTable" class="matches-table">
+      <thead>
+        <tr>
+          <th>Player Name</th>
+          <th>Team</th>
+          <th>Total Goals</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows added via JS -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const tableBody = document.querySelector("#scorersTable tbody");
+      try {
+        const res = await fetch("http://localhost:3000/api/topScorers");
+        const players = await res.json();
+
+        players.forEach(p => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${p.player_name}</td>
+            <td>${p.team_name}</td>
+            <td>${p.total_goals}</td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch {
+        alert("Failed to load top scorers.");
+      }
+    });
+  </script>
+</body>
+</html>

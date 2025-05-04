@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Members</title>
+  <link rel="stylesheet" href="BrowseTeamMembers.css" />
+</head>
+<body>
+  <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+
+  <main class="container">
+    <h1>Browse Team Members</h1>
+
+    <label for="teamSelect">Select Team:</label>
+    <select id="teamSelect">
+      <option value="">-- Select a Team --</option>
+    </select>
+
+    <table id="teamTable" class="matches-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows added via JS -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const select = document.getElementById("teamSelect");
+      const tableBody = document.querySelector("#teamTable tbody");
+
+      try {
+        const res = await fetch("http://localhost:3000/api/teams");
+        const teams = await res.json();
+        teams.forEach((t) => {
+          const opt = document.createElement("option");
+          opt.value = t.team_id;
+          opt.textContent = t.team_name;
+          select.appendChild(opt);
+        });
+      } catch {
+        alert("Failed to load teams.");
+      }
+
+      select.addEventListener("change", async (e) => {
+        const team_id = e.target.value;
+        tableBody.innerHTML = "";
+        if (!team_id) return;
+
+        try {
+          const res = await fetch(`http://localhost:3000/api/teamMembers?team_id=${team_id}`);
+          const members = await res.json();
+
+          members.forEach(m => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${m.name}</td>
+              <td>${m.role}</td>
+            `;
+            tableBody.appendChild(row);
+          });
+        } catch {
+          alert("Failed to load team members.");
+        }
+      });
+    });
+  </script>
+</body>
+</html>
