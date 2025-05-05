@@ -288,9 +288,40 @@ app.post('/api/tournament-team', (req, res) => {
   });
 });
 
+// retrieve top scorers by tournament
+app.get('/api/topScorersByTournament', (req, res) => {
+    const sql = `
+        SELECT
+            t.tr_name AS tournament_name,
+            pr.name AS player_name,
+            tm.team_name,
+            COUNT(g.goal_id) AS total_goals
+        FROM GOAL_DETAILS g
+                 JOIN PLAYER p ON g.player_id = p.player_id
+                 JOIN PERSON pr ON p.player_id = pr.kfupm_id
+                 JOIN TEAM_PLAYER tp ON p.player_id = tp.player_id
+                 JOIN TEAM tm ON tp.team_id = tm.team_id
+                 JOIN TOURNAMENT t ON tp.tr_id = t.tr_id
+        GROUP BY t.tr_id, pr.name, tm.team_name, p.player_id
+        ORDER BY t.tr_id, total_goals DESC;
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error("Top scorers query error:", err);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+        res.json(result);
+    });
+});
+
+// use welcome.html as the default page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
+});
 
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });
 
 module.exports = app;

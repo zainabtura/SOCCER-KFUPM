@@ -10,7 +10,7 @@
   <div class="form-container">
     <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
     <h1 class="form-title">Add a team to a tournament</h1>
-    
+
     <form id="teamForm" class="team-form">
       <label for="tournament">Tournament</label>
       <select id="tournament" required>
@@ -36,7 +36,7 @@
     const tournamentSelect = document.getElementById("tournament");
     const teamSelect = document.getElementById("team");
 
-    // Load tournaments and teams from backend
+    // Load tournaments
     window.addEventListener("DOMContentLoaded", async () => {
       try {
         const tourRes = await fetch("http://localhost:3000/api/tournaments");
@@ -47,17 +47,37 @@
           opt.textContent = `${t.tr_id} : ${t.tr_name}`;
           tournamentSelect.appendChild(opt);
         });
-
-        const teamRes = await fetch("http://localhost:3000/api/teams");
-        const teams = await teamRes.json();
-        teams.forEach(team => {
-          const opt = document.createElement("option");
-          opt.value = team.team_id;
-          opt.textContent = `${team.team_id} : ${team.team_name}`;
-          teamSelect.appendChild(opt);
-        });
       } catch (err) {
-        alert("Failed to load data.");
+        alert("Failed to load tournaments.");
+        console.error(err);
+      }
+    });
+
+    // Load ONLY teams NOT in the selected tournament
+    tournamentSelect.addEventListener("change", async () => {
+      teamSelect.innerHTML = '<option value="">Select Team</option>';
+
+      if (!tournamentSelect.value) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/teams-not-in-tournament?tr_id=${tournamentSelect.value}`);
+        const teams = await res.json();
+
+        if (teams.length === 0) {
+          const opt = document.createElement("option");
+          opt.textContent = "All teams already added";
+          opt.disabled = true;
+          teamSelect.appendChild(opt);
+        } else {
+          teams.forEach(team => {
+            const opt = document.createElement("option");
+            opt.value = team.team_id;
+            opt.textContent = `${team.team_id} : ${team.team_name}`;
+            teamSelect.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        alert("Failed to load teams.");
         console.error(err);
       }
     });
