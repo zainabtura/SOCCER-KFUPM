@@ -8,16 +8,13 @@
 </head>
 <body>
   <div class="form-container">
-    <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
-    <h1 class="form-title">Delete a tournament</h1>
-    <form class="delete-form" action="AdminHomePage.html">
+    <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
+    <h1 class="form-title">Delete a Tournament</h1>
+    <form id="deleteForm" class="delete-form">
       <label for="tournament">Select Tournament</label>
       <select id="tournament" required>
-        <option value="">Select a tournament</option>
-        <option value="101">101 : Fall Cup</option>
-        <option value="102">102 : Winter League</option>
+        <option value="">-- Select a tournament --</option>
       </select>
-
       <button type="submit" class="submit-button">Delete</button>
     </form>
   </div>
@@ -27,5 +24,56 @@
     <div class="blue-bar"></div>
   </div>
   <div class="ball">⚽️</div>
+
+  <script>
+    const tournamentSelect = document.getElementById("tournament");
+    const form = document.getElementById("deleteForm");
+
+    // Load tournaments dynamically
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/tournaments");
+        const tournaments = await res.json();
+
+        tournaments.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.tr_id;
+          opt.textContent = `${t.tr_id} : ${t.tr_name}`;
+          tournamentSelect.appendChild(opt);
+        });
+      } catch (err) {
+        alert("Failed to load tournaments.");
+        console.error(err);
+      }
+    });
+
+    // Handle deletion
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const tr_id = tournamentSelect.value;
+
+      if (!tr_id) return alert("Please select a tournament.");
+      const confirmDelete = confirm("Are you sure you want to delete this tournament?");
+      if (!confirmDelete) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/tournaments/${tr_id}`, {
+          method: "DELETE"
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          alert("Tournament deleted successfully.");
+          window.location.href = "AdminHomePage.html";
+        } else {
+          alert("Failed to delete tournament.");
+        }
+      } catch (err) {
+        alert("Server error.");
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>

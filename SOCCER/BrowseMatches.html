@@ -21,6 +21,7 @@
       <thead>
         <tr>
           <th>Match</th>
+          <th>Date</th>
           <th>Details</th>
         </tr>
       </thead>
@@ -35,12 +36,12 @@
       const select = document.getElementById("tournamentSelect");
       const tableBody = document.querySelector("#matchesTable tbody");
 
-      // Fetch tournaments for dropdown
+      // Fetch tournaments
       try {
         const tournamentsRes = await fetch("http://localhost:3000/api/tournaments");
         const tournaments = await tournamentsRes.json();
 
-        tournaments.forEach((t) => {
+        tournaments.forEach(t => {
           const opt = document.createElement("option");
           opt.value = t.tr_id;
           opt.textContent = t.tr_name;
@@ -48,27 +49,35 @@
         });
       } catch (err) {
         alert("Failed to load tournaments.");
-        return;
       }
 
-      // When a tournament is selected
+      // On tournament selection
       select.addEventListener("change", async (e) => {
         const tr_id = e.target.value;
         tableBody.innerHTML = "";
         if (!tr_id) return;
 
         try {
-          const response = await fetch(`http://localhost:3000/api/matches-by-tournament?tr_id=${tr_id}`);
-          const matches = await response.json();
+          const res = await fetch(`http://localhost:3000/api/matches-by-tournament?tr_id=${tr_id}`);
+          const matches = await res.json();
+
+          matches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
 
           matches.forEach((m) => {
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${m.team1} vs ${m.team2}</td>
-              <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
-            `;
-            tableBody.appendChild(row);
-          });
+          const matchDate = m.match_date ? new Date(m.match_date).toLocaleDateString() : 'N/A';
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>
+              <strong>${m.goal_score}</strong><br/>
+              ${m.team1} vs ${m.team2}
+            </td>
+            <td>${matchDate}</td>
+            <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
+          `;
+          tableBody.appendChild(row);
+        });
+
         } catch (err) {
           alert("Failed to load match results.");
         }

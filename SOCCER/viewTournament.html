@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Tournaments</title>
+  <link rel="stylesheet" href="viewTournament.css" />
+</head>
+<body>
+  <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
+
+  <main class="container">
+    <h1>All Tournaments</h1>
+
+    <table id="tournamentsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Tournament rows will be added here -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const tableBody = document.querySelector("#tournamentsTable tbody");
+
+      try {
+        const res = await fetch("http://localhost:3000/api/tournaments");
+        const tournaments = await res.json();
+
+        tournaments.forEach(t => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${t.tr_id}</td>
+            <td>${t.tr_name}</td>
+            <td>${new Date(t.start_date).toLocaleDateString()}</td>
+            <td>${new Date(t.end_date).toLocaleDateString()}</td>
+            <td><a href="tournamentDetails.html?tr_id=${t.tr_id}" class="details-btn">View Details</a></td>
+          `;
+          tableBody.appendChild(row);
+        });
+      } catch (error) {
+        console.error("Failed to fetch tournaments:", error);
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="5">Failed to load tournaments.</td>`;
+        tableBody.appendChild(row);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -210,7 +210,8 @@ app.get('/api/matches-by-tournament', (req, res) => {
     mp.match_no,
     t1.team_name AS team1,
     t2.team_name AS team2,
-    mp.play_date
+    mp.goal_score,
+    mp.play_date AS match_date
   FROM MATCH_PLAYED mp
   JOIN TEAM t1 ON mp.team_id1 = t1.team_id
   JOIN TEAM t2 ON mp.team_id2 = t2.team_id
