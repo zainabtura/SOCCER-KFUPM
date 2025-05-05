@@ -206,21 +206,19 @@ app.get('/api/matches-by-tournament', (req, res) => {
   }
 
   const sql = `
-    SELECT 
-      mp.match_no,
-      t1.team_name AS team1,
-      t2.team_name AS team2,
-      md.goal_score,
-      md.penalty_score,
-      md.win_lose,
-      mp.match_date
-    FROM MATCH_PLAYED mp
-    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
-    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
-    JOIN MATCH_DETAILS md ON mp.match_no = md.match_no
-    WHERE mp.tr_id = ?
-    ORDER BY mp.match_date ASC;
-  `;
+  SELECT 
+    mp.match_no,
+    t1.team_name AS team1,
+    t2.team_name AS team2,
+    mp.play_date
+  FROM MATCH_PLAYED mp
+  JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+  JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+  JOIN TOURNAMENT_TEAM tt1 ON mp.team_id1 = tt1.team_id
+  JOIN TOURNAMENT_TEAM tt2 ON mp.team_id2 = tt2.team_id
+  WHERE tt1.tr_id = ?
+    AND tt2.tr_id = tt1.tr_id;
+`;
 
   db.query(sql, [tournamentId], (err, result) => {
     if (err) {

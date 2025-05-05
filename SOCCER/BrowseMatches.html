@@ -21,7 +21,6 @@
       <thead>
         <tr>
           <th>Match</th>
-          <th>Date</th>
           <th>Details</th>
         </tr>
       </thead>
@@ -59,16 +58,13 @@
         if (!tr_id) return;
 
         try {
-          const response = await fetch(`http://localhost:3000/api/matches?tournament_id=${tr_id}`);
+          const response = await fetch(`http://localhost:3000/api/matches-by-tournament?tr_id=${tr_id}`);
           const matches = await response.json();
-
-          matches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
 
           matches.forEach((m) => {
             const row = document.createElement("tr");
             row.innerHTML = `
-              <td>${m.team1} ${m.goal_score} - ${m.penalty_score} ${m.team2}</td>
-              <td>${new Date(m.match_date).toLocaleDateString()}</td>
+              <td>${m.team1} vs ${m.team2}</td>
               <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
             `;
             tableBody.appendChild(row);
