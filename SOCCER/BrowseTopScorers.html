@@ -15,6 +15,7 @@
     <table id="scorersTable" class="matches-table">
       <thead>
         <tr>
+          <th>Tournament</th>
           <th>Player Name</th>
           <th>Team</th>
           <th>Total Goals</th>
@@ -30,12 +31,13 @@
     window.addEventListener("DOMContentLoaded", async () => {
       const tableBody = document.querySelector("#scorersTable tbody");
       try {
-        const res = await fetch("http://localhost:3000/api/topScorers");
+        const res = await fetch("http://localhost:3000/api/topScorersByTournament");
         const players = await res.json();
 
         players.forEach(p => {
           const row = document.createElement("tr");
           row.innerHTML = `
+            <td>${p.tournament_name}</td>
             <td>${p.player_name}</td>
             <td>${p.team_name}</td>
             <td>${p.total_goals}</td>
