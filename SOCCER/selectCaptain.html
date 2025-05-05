@@ -8,21 +8,18 @@
 </head>
 <body>
   <div class="form-container">
-    <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
+    <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
     <h1 class="form-title">Select a captain for a team</h1>
-    <form class="captain-form" action="AdminHomePage.html">
-      <label for="team">Team</label>
+    
+    <form id="captainForm" class="captain-form">
+      <label for="team">Team (no captain assigned)</label>
       <select id="team" required>
         <option value="">Select Team</option>
-        <option value="101">101 : Falcons</option>
-        <option value="102">102 : Eagles</option>
       </select>
 
       <label for="player">Team Member</label>
       <select id="player" required>
         <option value="">Select Team Member</option>
-        <option value="201">201 : Ahmed</option>
-        <option value="202">202 : Omar</option>
       </select>
 
       <button type="submit" class="submit-button">Assign as Captain</button>
@@ -34,5 +31,91 @@
     <div class="blue-bar"></div>
   </div>
   <div class="ball">⚽️</div>
+
+  <script>
+    const teamSelect = document.getElementById("team");
+    const playerSelect = document.getElementById("player");
+
+    // Load teams without captains
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/teams-without-captain");
+        const teams = await res.json();
+
+        if (teams.length === 0) {
+          const opt = document.createElement("option");
+          opt.textContent = "All teams already have captains";
+          opt.disabled = true;
+          teamSelect.appendChild(opt);
+        } else {
+          teams.forEach(t => {
+            const opt = document.createElement("option");
+            opt.value = t.team_id;
+            opt.textContent = `${t.team_id} : ${t.team_name}`;
+            teamSelect.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        alert("Failed to load teams.");
+        console.error(err);
+      }
+    });
+
+    // Load players when a team is selected
+    teamSelect.addEventListener("change", async () => {
+      const teamId = teamSelect.value;
+      playerSelect.innerHTML = '<option value="">Select Team Member</option>';
+
+      if (!teamId) return;
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/team-members?team_id=${teamId}`);
+        const players = await res.json();
+
+        if (players.length === 0) {
+          const opt = document.createElement("option");
+          opt.textContent = "No members available";
+          opt.disabled = true;
+          playerSelect.appendChild(opt);
+        } else {
+          players.forEach(p => {
+            const opt = document.createElement("option");
+            opt.value = p.player_id;
+            opt.textContent = `${p.player_id} : ${p.name}`;
+            playerSelect.appendChild(opt);
+          });
+        }
+      } catch (err) {
+        alert("Failed to load team members.");
+        console.error(err);
+      }
+    });
+
+    // Assign captain form
+    document.getElementById("captainForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const team_id = teamSelect.value;
+      const player_id = playerSelect.value;
+
+      try {
+        const res = await fetch("http://localhost:3000/api/assign-captain", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ team_id, player_id })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("Captain assigned successfully!");
+          window.location.href = "AdminHomePage.html";
+        } else {
+          alert("Failed to assign captain: " + data.message);
+        }
+      } catch (err) {
+        alert("Server error.");
+        console.error(err);
+      }
+    });
+  </script>
 </body>
 </html>

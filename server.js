@@ -315,6 +315,71 @@ app.get('/api/topScorersByTournament', (req, res) => {
     });
 });
 
+app.get('/api/teams-without-captain', (req, res) => {
+  const sql = `
+    SELECT t.team_id, t.team_name
+    FROM TEAM t
+    WHERE NOT EXISTS (
+      SELECT 1 FROM MATCH_CAPTAIN mc WHERE mc.team_id = t.team_id
+    );
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error("Error fetching teams without captain:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+    res.json(result);
+  });
+});
+
+// Route to get members of a team
+app.get('/api/team-members', (req, res) => {
+  const { team_id } = req.query;
+
+  if (!team_id) {
+    return res.status(400).json({ success: false, message: "Missing team ID" });
+  }
+
+  const sql = `
+    SELECT p.player_id, pr.name
+    FROM PLAYER p
+    JOIN PERSON pr ON pr.kfupm_id = p.player_id
+    JOIN TEAM_PLAYER tp ON tp.player_id = p.player_id
+    WHERE tp.team_id = ?;
+  `;
+
+  db.query(sql, [team_id], (err, result) => {
+    if (err) {
+      console.error("Error loading team members:", err);
+      return res.status(500).json({ success: false, message: "Query failed" });
+    }
+    res.json(result);
+  });
+});
+
+// Route to assign captain to a team (NO match_no)
+app.post('/api/assign-captain', (req, res) => {
+  const { team_id, player_id } = req.body;
+
+  if (!team_id || !player_id) {
+    return res.status(400).json({ success: false, message: "Missing data" });
+  }
+
+  const sql = `
+    INSERT INTO MATCH_CAPTAIN (team_id, player_captain)
+    VALUES (?, ?)
+  `;
+
+  db.query(sql, [team_id, player_id], (err) => {
+    if (err) {
+      console.error("Captain assignment failed:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+    res.json({ success: true });
+  });
+});
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
