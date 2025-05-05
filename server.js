@@ -231,6 +231,64 @@ app.get('/api/matches-by-tournament', (req, res) => {
   });
 });
 
+
+// Get teams NOT already in a specific tournament
+app.get('/api/teams-not-in-tournament', (req, res) => {
+  const { tr_id } = req.query;
+
+  if (!tr_id) {
+    return res.status(400).json({ success: false, message: "Missing tournament ID" });
+  }
+
+  const sql = `
+    SELECT team_id, team_name 
+    FROM TEAM 
+    WHERE team_id NOT IN (
+      SELECT team_id 
+      FROM TOURNAMENT_TEAM 
+      WHERE tr_id = ?
+    );
+  `;
+
+  db.query(sql, [tr_id], (err, result) => {
+    if (err) {
+      console.error("Database error:", err);
+      return res.status(500).json({ success: false, message: "Query failed" });
+    }
+
+    res.json(result);
+  });
+});
+
+// Add a team to a tournament (with check to prevent duplicates)
+app.post('/api/tournament-team', (req, res) => {
+  const { tr_id, team_id } = req.body;
+
+  if (!tr_id || !team_id) {
+    return res.status(400).json({ success: false, message: "Missing fields." });
+  }
+
+  const checkQuery = 'SELECT * FROM TOURNAMENT_TEAM WHERE tr_id = ? AND team_id = ?';
+  db.query(checkQuery, [tr_id, team_id], (err, results) => {
+    if (err) return res.status(500).json({ success: false, message: "Database error." });
+    if (results.length > 0) {
+      return res.status(409).json({ success: false, message: "Team already added to tournament." });
+    }
+
+    const insertQuery = `
+      INSERT INTO TOURNAMENT_TEAM (
+        team_id, tr_id, team_group, match_played, won, draw, lost, goal_for, goal_against, goal_diff, points, group_position
+      ) VALUES (?, ?, 'A', 0, 0, 0, 0, 0, 0, 0, 0, 0)
+    `;
+
+    db.query(insertQuery, [team_id, tr_id], (err2) => {
+      if (err2) return res.status(500).json({ success: false, message: "Insert failed." });
+      res.json({ success: true });
+    });
+  });
+});
+
+
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });

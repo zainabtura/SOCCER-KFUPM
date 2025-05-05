@@ -1,40 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add Team to Tournament</title>
-    <link rel="stylesheet" href="addTeam.css" />
-  </head>
-  <body>
-    <div class="form-container">
-      <a href="AdminHomePage.html" class="back-link">&larr; home page</a>
-      <h1 class="form-title">Add a team to a tournament</h1>
-      <form class="team-form" action="AdminHomePage.html">
-        <label for="tournament">Tournament</label>
-        <select id="tournament" required>
-          <option value="">Select Tournament</option>
-          <option value="1">001 : Spring Cup</option>
-          <option value="2">002 : Desert League</option>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Add Team to Tournament</title>
+  <link rel="stylesheet" href="addTeam.css" />
+</head>
+<body>
+  <div class="form-container">
+    <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
+    <h1 class="form-title">Add a team to a tournament</h1>
+    
+    <form id="teamForm" class="team-form">
+      <label for="tournament">Tournament</label>
+      <select id="tournament" required>
+        <option value="">Select Tournament</option>
+      </select>
 
-        </select>
+      <label for="team">Team</label>
+      <select id="team" required>
+        <option value="">Select Team</option>
+      </select>
 
-        <label for="team">Team</label>
-        <select id="team" required>
-          <option value="">Select Team</option>
-          <option value="101">101 : Falcons</option>
-          <option value="102">102 : Eagles</option>
+      <button type="submit" class="submit-button">Add Team</button>
+    </form>
+  </div>
 
-        </select>
+  <div class="side-design">
+    <div class="green-bar"></div>
+    <div class="blue-bar"></div>
+  </div>
+  <div class="ball">⚽️</div>
 
-        <button type="submit" class="submit-button">Add team</button>
-      </form>
-    </div>
+  <script>
+    const tournamentSelect = document.getElementById("tournament");
+    const teamSelect = document.getElementById("team");
 
-    <div class="side-design">
-      <div class="green-bar"></div>
-      <div class="blue-bar"></div>
-    </div>
-    <div class="ball">⚽️</div>
-  </body>
+    // Load tournaments and teams from backend
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const tourRes = await fetch("http://localhost:3000/api/tournaments");
+        const tournaments = await tourRes.json();
+        tournaments.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.tr_id;
+          opt.textContent = `${t.tr_id} : ${t.tr_name}`;
+          tournamentSelect.appendChild(opt);
+        });
+
+        const teamRes = await fetch("http://localhost:3000/api/teams");
+        const teams = await teamRes.json();
+        teams.forEach(team => {
+          const opt = document.createElement("option");
+          opt.value = team.team_id;
+          opt.textContent = `${team.team_id} : ${team.team_name}`;
+          teamSelect.appendChild(opt);
+        });
+      } catch (err) {
+        alert("Failed to load data.");
+        console.error(err);
+      }
+    });
+
+    // Handle form submission
+    document.getElementById("teamForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const tr_id = tournamentSelect.value;
+      const team_id = teamSelect.value;
+
+      try {
+        const res = await fetch("http://localhost:3000/api/tournament-team", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tr_id, team_id })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          alert("Team added to tournament successfully!");
+          window.location.href = "AdminHomePage.html";
+        } else {
+          alert("Failed to add team: " + data.message);
+        }
+      } catch (err) {
+        alert("Server error.");
+        console.error(err);
+      }
+    });
+  </script>
+</body>
 </html>
