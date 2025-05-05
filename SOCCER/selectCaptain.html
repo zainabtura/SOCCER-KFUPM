@@ -9,10 +9,15 @@
 <body>
   <div class="form-container">
     <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
-    <h1 class="form-title">Select a captain for a team</h1>
-    
+    <h1 class="form-title">Select a captain for a team (per match)</h1>
+
     <form id="captainForm" class="captain-form">
-      <label for="team">Team (no captain assigned)</label>
+      <label for="match">Match</label>
+      <select id="match" required>
+        <option value="">Select Match</option>
+      </select>
+
+      <label for="team">Team in Match</label>
       <select id="team" required>
         <option value="">Select Team</option>
       </select>
@@ -33,78 +38,100 @@
   <div class="ball">⚽️</div>
 
   <script>
+    const matchSelect = document.getElementById("match");
     const teamSelect = document.getElementById("team");
     const playerSelect = document.getElementById("player");
-
-    // Load teams without captains
+  
+    let matchTeamMap = {}; // match_no -> { team1: { id, name }, team2: { id, name } }
+  
+    // Load match list with team names
     window.addEventListener("DOMContentLoaded", async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/teams-without-captain");
-        const teams = await res.json();
-
-        if (teams.length === 0) {
+        const res = await fetch("http://localhost:3000/api/match-list");
+        const matches = await res.json();
+  
+        matches.forEach(m => {
+          matchTeamMap[m.match_no] = {
+            team1: { id: m.team_id1, name: m.team_name1 },
+            team2: { id: m.team_id2, name: m.team_name2 }
+          };
+  
           const opt = document.createElement("option");
-          opt.textContent = "All teams already have captains";
-          opt.disabled = true;
-          teamSelect.appendChild(opt);
-        } else {
-          teams.forEach(t => {
-            const opt = document.createElement("option");
-            opt.value = t.team_id;
-            opt.textContent = `${t.team_id} : ${t.team_name}`;
-            teamSelect.appendChild(opt);
-          });
-        }
+          opt.value = m.match_no;
+          opt.textContent = `Match ${m.match_no} (${m.team_name1} vs ${m.team_name2})`;
+          matchSelect.appendChild(opt);
+        });
       } catch (err) {
-        alert("Failed to load teams.");
+        alert("Failed to load matches.");
         console.error(err);
       }
     });
-
-    // Load players when a team is selected
-    teamSelect.addEventListener("change", async () => {
-      const teamId = teamSelect.value;
+  
+    // When a match is selected, populate teams involved
+    matchSelect.addEventListener("change", () => {
+      const matchNo = matchSelect.value;
+      teamSelect.innerHTML = '<option value="">Select Team</option>';
       playerSelect.innerHTML = '<option value="">Select Team Member</option>';
-
-      if (!teamId) return;
-
+  
+      if (!matchNo || !matchTeamMap[matchNo]) return;
+  
+      const { team1, team2 } = matchTeamMap[matchNo];
+  
+      [team1, team2].forEach(team => {
+        const opt = document.createElement("option");
+        opt.value = team.id;
+        opt.textContent = team.name;
+        teamSelect.appendChild(opt);
+      });
+    });
+  
+    // When a team is selected, load players from that team for the selected match
+    teamSelect.addEventListener("change", async () => {
+      const matchNo = matchSelect.value;
+      const teamId = teamSelect.value;
+  
+      playerSelect.innerHTML = '<option value="">Select Team Member</option>';
+  
+      if (!matchNo || !teamId) return;
+  
       try {
-        const res = await fetch(`http://localhost:3000/api/team-members?team_id=${teamId}`);
+        const res = await fetch(`http://localhost:3000/api/team-members-in-match?match_no=${matchNo}&team_id=${teamId}`);
         const players = await res.json();
-
-        if (players.length === 0) {
+  
+        players.forEach(p => {
           const opt = document.createElement("option");
-          opt.textContent = "No members available";
-          opt.disabled = true;
+          opt.value = p.player_id;
+          opt.textContent = `${p.player_id} : ${p.name}`;
           playerSelect.appendChild(opt);
-        } else {
-          players.forEach(p => {
-            const opt = document.createElement("option");
-            opt.value = p.player_id;
-            opt.textContent = `${p.player_id} : ${p.name}`;
-            playerSelect.appendChild(opt);
-          });
-        }
+        });
       } catch (err) {
-        alert("Failed to load team members.");
+        alert("Failed to load players.");
         console.error(err);
       }
     });
-
-    // Assign captain form
+  
+    // Assign as captain
     document.getElementById("captainForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+  
+      const match_no = matchSelect.value;
       const team_id = teamSelect.value;
       const player_id = playerSelect.value;
-
+  
+      if (!match_no || !team_id || !player_id) {
+        alert("Please select all fields.");
+        return;
+      }
+  
       try {
         const res = await fetch("http://localhost:3000/api/assign-captain", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ team_id, player_id })
+          body: JSON.stringify({ match_no, team_id, player_id })
         });
-
+  
         const data = await res.json();
+  
         if (data.success) {
           alert("Captain assigned successfully!");
           window.location.href = "AdminHomePage.html";

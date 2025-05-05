@@ -34,17 +34,19 @@ db.connect(err => {
 // Matches route
 app.get('/api/matches', (req, res) => {
     const sql = `
-    SELECT 
-      mp.match_no,
-      t1.team_name AS team1,
-      t2.team_name AS team2,
-      md.goal_score,
-      md.penalty_score,
-      md.win_lose
-    FROM MATCH_PLAYED mp
-    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
-    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
-    JOIN match_details md ON mp.match_no = md.match_no;
+      SELECT 
+        mp.match_no,
+        mp.team_id1,
+        mp.team_id2,
+        t1.team_name AS team1,
+        t2.team_name AS team2,
+        md.goal_score,
+        md.penalty_score,
+        md.win_lose
+      FROM MATCH_PLAYED mp
+      JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+      JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+      JOIN match_details md ON mp.match_no = md.match_no;
   `;
     db.query(sql, (err, result) => {
         if (err) return res.status(500).send(err);
@@ -315,68 +317,135 @@ app.get('/api/topScorersByTournament', (req, res) => {
     });
 });
 
-app.get('/api/teams-without-captain', (req, res) => {
-  const sql = `
-    SELECT t.team_id, t.team_name
-    FROM TEAM t
-    WHERE NOT EXISTS (
-      SELECT 1 FROM MATCH_CAPTAIN mc WHERE mc.team_id = t.team_id
-    );
-  `;
+app.get('/api/match-teams', (req, res) => {
+  const { match_no } = req.query;
+  if (!match_no) return res.status(400).json({ success: false, message: "Missing match number" });
 
-  db.query(sql, (err, result) => {
+  const sql = `
+    SELECT team_id1 AS team1, team_id2 AS team2
+    FROM MATCH_PLAYED
+    WHERE match_no = ?
+  `;
+  db.query(sql, [match_no], (err, result) => {
     if (err) {
-      console.error("Error fetching teams without captain:", err);
-      return res.status(500).json({ success: false, message: "Database error" });
+      console.error("Error fetching teams:", err);
+      return res.status(500).json({ success: false, message: "DB error" });
     }
-    res.json(result);
+    if (result.length === 0) return res.json([]);
+    res.json([result[0].team1, result[0].team2]);
   });
 });
 
-// Route to get members of a team
-app.get('/api/team-members', (req, res) => {
+app.get('/api/team-players', (req, res) => {
   const { team_id } = req.query;
-
-  if (!team_id) {
-    return res.status(400).json({ success: false, message: "Missing team ID" });
-  }
+  if (!team_id) return res.status(400).json({ success: false, message: "Missing team ID" });
 
   const sql = `
     SELECT p.player_id, pr.name
     FROM PLAYER p
     JOIN PERSON pr ON pr.kfupm_id = p.player_id
     JOIN TEAM_PLAYER tp ON tp.player_id = p.player_id
-    WHERE tp.team_id = ?;
+    WHERE tp.team_id = ?
   `;
-
   db.query(sql, [team_id], (err, result) => {
     if (err) {
-      console.error("Error loading team members:", err);
-      return res.status(500).json({ success: false, message: "Query failed" });
+      console.error("Error fetching players:", err);
+      return res.status(500).json({ success: false, message: "DB error" });
     }
     res.json(result);
   });
 });
 
-// Route to assign captain to a team (NO match_no)
 app.post('/api/assign-captain', (req, res) => {
-  const { team_id, player_id } = req.body;
+  const { match_no, team_id, player_id } = req.body;
 
-  if (!team_id || !player_id) {
+  if (!match_no || !team_id || !player_id) {
     return res.status(400).json({ success: false, message: "Missing data" });
   }
 
-  const sql = `
-    INSERT INTO MATCH_CAPTAIN (team_id, player_captain)
-    VALUES (?, ?)
+  const checkSql = `
+    SELECT * FROM MATCH_CAPTAIN
+    WHERE match_no = ? AND team_id = ?
   `;
 
-  db.query(sql, [team_id, player_id], (err) => {
+  db.query(checkSql, [match_no, team_id], (checkErr, result) => {
+    if (checkErr) {
+      console.error("Error checking existing captain:", checkErr);
+      return res.status(500).json({ success: false, message: "Database error during check" });
+    }
+
+    if (result.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Captain already assigned for this team in this match"
+      });
+    }
+
+    const insertSql = `
+      INSERT INTO MATCH_CAPTAIN (match_no, team_id, player_captain)
+      VALUES (?, ?, ?)
+    `;
+
+    db.query(insertSql, [match_no, team_id, player_id], (insertErr) => {
+      if (insertErr) {
+        console.error("Captain assignment failed:", insertErr);
+        return res.status(500).json({ success: false, message: "Database error" });
+      }
+
+      res.json({ success: true });
+    });
+  });
+});
+
+app.get('/api/match-list', (req, res) => {
+  const sql = `
+    SELECT 
+      mp.match_no,
+      t1.team_id AS team_id1,
+      t1.team_name AS team_name1,
+      t2.team_id AS team_id2,
+      t2.team_name AS team_name2
+    FROM MATCH_PLAYED mp
+    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+    ORDER BY mp.match_no;
+  `;
+
+  db.query(sql, (err, result) => {
     if (err) {
-      console.error("Captain assignment failed:", err);
+      console.error("Error fetching match list:", err);
       return res.status(500).json({ success: false, message: "Database error" });
     }
-    res.json({ success: true });
+    res.json(result);
+  });
+});
+
+app.get('/api/team-members-in-match', (req, res) => {
+  const { match_no, team_id } = req.query;
+
+  if (!match_no || !team_id) {
+    return res.status(400).json({ success: false, message: "Missing match_no or team_id" });
+  }
+
+  const sql = `
+    SELECT p.player_id, pr.name
+    FROM TEAM_PLAYER tp
+    JOIN PLAYER p ON tp.player_id = p.player_id
+    JOIN PERSON pr ON p.player_id = pr.kfupm_id
+    WHERE tp.team_id = ? AND tp.tr_id IN (
+      SELECT tt.tr_id
+      FROM TOURNAMENT_TEAM tt
+      JOIN MATCH_PLAYED mp ON mp.team_id1 = tt.team_id OR mp.team_id2 = tt.team_id
+      WHERE mp.match_no = ?
+    );
+  `;
+
+  db.query(sql, [team_id, match_no], (err, result) => {
+    if (err) {
+      console.error("Error fetching team members in match:", err);
+      return res.status(500).json({ success: false, message: "Query failed" });
+    }
+    res.json(result);
   });
 });
 
