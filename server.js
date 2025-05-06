@@ -449,6 +449,32 @@ app.get('/api/team-members-in-match', (req, res) => {
   });
 });
 
+app.get('/api/redCards', (req, res) => {
+    const sql = `
+        SELECT
+            per.name AS player_name,
+            tm.team_name,
+            COUNT(*) AS red_card_count
+        FROM PENALTY_GK pg
+                 JOIN PLAYER p ON pg.player_gk = p.player_id
+                 JOIN PERSON per ON p.player_id = per.kfupm_id
+                 JOIN TEAM tm ON pg.team_id = tm.team_id
+        GROUP BY pg.player_gk, per.name, tm.team_name
+        ORDER BY red_card_count DESC;
+    `;
+
+    db.query(sql, (err, result) => {
+        if (err) {
+            console.error("Red cards query error:", err.sqlMessage);
+            return res.status(500).json({ success: false, message: "Database error.", error: err.sqlMessage });
+        }
+        res.json(result);
+    });
+});
+
+
+
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
