@@ -564,7 +564,29 @@ app.get('/api/teamMembers', (req, res) => {
     });
 });
 
+//admin login authentication
+app.post('/api/admin-login', (req, res) => {
+    const { username, password } = req.body;
 
+    if (!username || !password) {
+        return res.status(400).json({ success: false, message: "Username and password are required." });
+    }
+
+    const sql = `SELECT * FROM ADMIN WHERE admin_username = ? AND admin_password = ?`;
+
+    db.query(sql, [username, password], (err, result) => {
+        if (err) {
+            console.error("Admin login query error:", err);
+            return res.status(500).json({ success: false, message: "Database error." });
+        }
+
+        if (result.length > 0) {
+            res.json({ success: true });
+        } else {
+            res.status(401).json({ success: false, message: "Invalid credentials." });
+        }
+    });
+});
 
 // use welcome.html as the default page
 app.get('/', (req, res) => {
