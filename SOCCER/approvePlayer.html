@@ -25,42 +25,71 @@
           <th>Reject</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td>Falcons</td>
-          <td>202011111</td>
-          <td>Ahmed Ali</td>
-          <td>2002-04-01</td>
-          <td>ahmed@kfupm.edu.sa</td>
-          <td>Student</td>
-          <td>SE</td>
-          <td><button class="approve-btn">Approve</button></td>
-          <td><button class="reject-btn">Reject</button></td>
-        </tr>
-        <tr>
-          <td>Tigers</td>
-          <td>201988888</td>
-          <td>Dr. Salem</td>
-          <td>1980-07-20</td>
-          <td>salem@kfupm.edu.sa</td>
-          <td>Faculty</td>
-          <td>EE</td>
-          <td><button class="approve-btn">Approve</button></td>
-          <td><button class="reject-btn">Reject</button></td>
-        </tr>
-        <tr>
-          <td>Eagles</td>
-          <td>202077777</td>
-          <td>Mona Alharbi</td>
-          <td>2000-12-11</td>
-          <td>mona@kfupm.edu.sa</td>
-          <td>Staff</td>
-          <td>CS</td>
-          <td><button class="approve-btn">Approve</button></td>
-          <td><button class="reject-btn">Reject</button></td>
-        </tr>
+      <tbody id="player-table-body">
+        <!-- Rows will be inserted here -->
       </tbody>
     </table>
   </div>
+
+  <script>
+    async function loadPendingPlayers() {
+      try {
+        const res = await fetch("http://localhost:3000/api/pending-players");
+        const players = await res.json();
+        const tbody = document.getElementById("player-table-body");
+
+        players.forEach(p => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${p.team_name}</td>
+            <td>${p.kfupm_id}</td>
+            <td>${p.name}</td>
+            <td>${p.date_of_birth.split("T")[0]}</td>
+            <td>${p.email}</td>
+            <td>${p.type}</td>
+            <td>${p.department}</td>
+            <td><button class="approve-btn" onclick="handleApprove(${p.kfupm_id}, ${p.team_id}, ${p.tr_id})">Approve to join ${p.team_name}</button></td>
+            <td><button class="reject-btn" onclick="handleReject(${p.kfupm_id}, ${p.team_id}, ${p.tr_id})">Reject to join ${p.team_name}</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        alert("Failed to load players");
+        console.error(err);
+      }
+    }
+
+    async function handleApprove(player_id, team_id, tr_id) {
+      try {
+        await fetch("http://localhost:3000/api/approve-player", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ player_id, team_id, tr_id })
+        });
+        alert("Player approved");
+        location.reload();
+      } catch (err) {
+        alert("Approval failed");
+        console.error(err);
+      }
+    }
+
+    async function handleReject(player_id, team_id, tr_id) {
+      try {
+        await fetch("http://localhost:3000/api/reject-player", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ player_id, team_id, tr_id })
+        });
+        alert("Player rejected");
+        location.reload();
+      } catch (err) {
+        alert("Rejection failed");
+        console.error(err);
+      }
+    }
+
+    loadPendingPlayers();
+  </script>
 </body>
 </html>
