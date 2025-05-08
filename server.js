@@ -502,6 +502,7 @@ app.post('/api/reject-player', (req, res) => {
     UPDATE REGISTRATION_REQUEST SET status = 'rejected'
     WHERE player_id = ? AND team_id = ? AND tr_id = ?
   `;
+
   db.query(updateStatus, [player_id, team_id, tr_id], (err) => {
     if (err) return res.status(500).json({ error: 'Update failed' });
     res.json({ success: true });
@@ -532,13 +533,13 @@ app.get('/api/redCards', (req, res) => {
     });
 });
 
+// view players of each team
 app.get('/api/teamMembers', (req, res) => {
     const teamId = req.query.team_id;
 
     if (!teamId) {
         return res.status(400).json({ success: false, message: "Missing team_id" });
     }
-
     const sql = `
     SELECT 
       pr.name,
@@ -549,17 +550,14 @@ app.get('/api/teamMembers', (req, res) => {
     JOIN PLAYING_POSITION pos ON p.position_to_play = pos.position_id
     WHERE tp.team_id = ?;
   `;
-
     db.query(sql, [teamId], (err, result) => {
         if (err) {
             console.error("Team members query error:", err);
             return res.status(500).json({ success: false, message: "Database error" });
         }
-
         res.json(result);
     });
 });
-
 
 
 // use welcome.html as the default page
