@@ -7,9 +7,10 @@
   <link rel="stylesheet" href="BrowseMatches.css" />
 </head>
 <body>
-  <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
-
   <main class="container">
+    <div style="text-align: left;">
+      <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+    </div>
     <h1>Browse Match Results</h1>
 
     <label for="tournamentSelect">Select Tournament:</label>
@@ -64,19 +65,16 @@
           matches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
 
           matches.forEach((m) => {
-          const matchDate = m.match_date ? new Date(m.match_date).toLocaleDateString() : 'N/A';
+            const matchDate = m.match_date ? new Date(m.match_date).toLocaleDateString() : 'N/A';
 
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>
-              <strong>${m.goal_score}</strong><br/>
-              ${m.team1} vs ${m.team2}
-            </td>
-            <td>${matchDate}</td>
-            <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
-          `;
-          tableBody.appendChild(row);
-        });
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td><strong>${m.goal_score}</strong><br/>${m.team1} vs ${m.team2}</td>
+              <td>${matchDate}</td>
+              <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
+            `;
+            tableBody.appendChild(row);
+          });
 
         } catch (err) {
           alert("Failed to load match results.");

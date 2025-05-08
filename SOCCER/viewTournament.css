@@ -1,58 +1,69 @@
 body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f5f7fa;
-  }
-  
-  .container {
-    padding: 3rem;
-    max-width: 1000px;
-    margin: auto;
-  }
-  
-  h1 {
-    color: #01159C;
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-  
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: white;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-  }
-  
-  th, td {
-    padding: 1rem;
-    border: 1px solid #ddd;
-    text-align: center;
-  }
-  
-  th {
-    background-color: #01159C;
-    color: white;
-  }
-  
-  .details-btn {
-    padding: 0.5rem 1rem;
-    background-color: #215a37;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-  }
-  
-  .details-btn:hover {
-    background-color: #1c4c30;
-  }
-  
-  .back-link {
-    display: inline-block;
-    margin: 20px;
-    text-decoration: none;
-    font-weight: bold;
-    color: #01159C;
-  }
-  
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f1f6fb;
+}
+
+.container {
+  max-width: 1200px; /* wider box */
+  margin: 3rem auto;
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+  color: #01159C;
+  margin-bottom: 2rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  text-align: center;
+  padding: 0.9rem;
+  border: 1px solid #d4d4d4;
+}
+
+th {
+  background-color: #01159C;
+  color: white;
+  font-weight: bold;
+}
+
+.details-btn {
+  background-color: #215a37;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.details-btn:hover {
+  background-color: #1b492d;
+}
+
+.back-link {
+  color: #01159C;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}

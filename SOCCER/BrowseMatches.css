@@ -1,14 +1,17 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f5f7fa;
   }
   
   .container {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 3rem 1rem 1rem 1rem;
+    max-width: 1300px;
+    margin: 3rem auto;
+    background-color: white;
+    padding: 3rem 2rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    border-radius: 8px;
     text-align: center;
   }
   
@@ -60,10 +63,9 @@ body {
   }
   
   .back-link {
-    display: inline-block;
-    margin: 20px;
-    text-decoration: none;
-    font-weight: bold;
     color: #01159C;
+    font-weight: bold;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
   }
-  

@@ -588,6 +588,58 @@ app.post('/api/admin-login', (req, res) => {
     });
 });
 
+// Tournament basic info
+app.get('/api/tournament/:id', (req, res) => {
+  const { id } = req.params;
+
+  const sql = `
+    SELECT tr_id, tr_name, start_date, end_date
+    FROM TOURNAMENT
+    WHERE tr_id = ?
+  `;
+
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error("Error fetching tournament:", err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ error: 'Tournament not found' });
+    }
+    res.json(result[0]);
+  });
+});
+
+// Participating teams
+app.get('/api/tournament-details/:tr_id', (req, res) => {
+  const { tr_id } = req.params;
+
+  const sql = `
+    SELECT 
+      t.team_id,
+      t.team_name,
+      tt.team_group,
+      tt.match_played,
+      tt.won,
+      tt.draw,
+      tt.lost,
+      tt.goal_for,
+      tt.goal_against,
+      tt.points
+    FROM TOURNAMENT_TEAM tt
+    JOIN TEAM t ON tt.team_id = t.team_id
+    WHERE tt.tr_id = ?
+  `;
+
+  db.query(sql, [tr_id], (err, results) => {
+    if (err) {
+      console.error("Error loading tournament details:", err);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(results);
+  });
+});
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));

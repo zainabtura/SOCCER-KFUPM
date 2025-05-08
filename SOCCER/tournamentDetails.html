@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tournament Details</title>
+  <link rel="stylesheet" href="tournamentDetails.css">
+</head>
+<body>
+  <div class="container">
+    <a href="viewTournament.html" class="back-link">&larr; Back to All Tournaments</a>
+    <h1 class="page-title">Tournament Details</h1>
+
+    <div id="tournament-info" class="info-box"></div>
+
+    <h2>Participating Teams</h2>
+    <table class="details-table">
+      <thead>
+        <tr>
+          <th>Team ID</th>
+          <th>Team Name</th>
+          <th>Group</th>
+          <th>Matches Played</th>
+          <th>Wins</th>
+          <th>Draws</th>
+          <th>Losses</th>
+          <th>Goals For</th>
+          <th>Goals Against</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <!-- JavaScript will inject rows here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadTournamentDetails() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tr_id = urlParams.get("tr_id");
+  
+      try {
+        console.log("Fetching details for tr_id =", tr_id);  // ✅ log the ID
+  
+        const res = await fetch(`http://localhost:3000/api/tournament-details/${tr_id}`);
+  
+        if (!res.ok) throw new Error("Network response was not ok");
+  
+        const teams = await res.json();
+        console.log("Fetched teams:", teams); // ✅ log data received
+  
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = "";
+  
+        teams.forEach(team => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${team.team_id}</td>
+            <td>${team.team_name}</td>
+            <td>${team.team_group}</td>
+            <td>${team.match_played}</td>
+            <td>${team.won}</td>
+            <td>${team.draw}</td>
+            <td>${team.lost}</td>
+            <td>${team.goal_for}</td>
+            <td>${team.goal_against}</td>
+            <td>${team.points}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+  
+      } catch (err) {
+        console.error("Fetch error:", err); // ✅ better error logging
+        alert("Failed to load tournament details");
+      }
+    }
+  
+    loadTournamentDetails();
+  </script>
+</body>
+</html>
