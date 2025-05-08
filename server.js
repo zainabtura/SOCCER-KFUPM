@@ -420,6 +420,7 @@ app.get('/api/match-list', (req, res) => {
   });
 });
 
+// Get team members in a specific match
 app.get('/api/team-members-in-match', (req, res) => {
   const { match_no, team_id } = req.query;
 
@@ -449,6 +450,7 @@ app.get('/api/team-members-in-match', (req, res) => {
   });
 });
 
+//view players with red cards
 app.get('/api/redCards', (req, res) => {
     const sql = `
         SELECT
@@ -472,6 +474,33 @@ app.get('/api/redCards', (req, res) => {
     });
 });
 
+app.get('/api/teamMembers', (req, res) => {
+    const teamId = req.query.team_id;
+
+    if (!teamId) {
+        return res.status(400).json({ success: false, message: "Missing team_id" });
+    }
+
+    const sql = `
+    SELECT 
+      pr.name,
+      pos.position_desc AS role
+    FROM TEAM_PLAYER tp
+    JOIN PLAYER p ON tp.player_id = p.player_id
+    JOIN PERSON pr ON p.player_id = pr.kfupm_id
+    JOIN PLAYING_POSITION pos ON p.position_to_play = pos.position_id
+    WHERE tp.team_id = ?;
+  `;
+
+    db.query(sql, [teamId], (err, result) => {
+        if (err) {
+            console.error("Team members query error:", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+        }
+
+        res.json(result);
+    });
+});
 
 
 
