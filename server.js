@@ -540,24 +540,30 @@ app.get('/api/teamMembers', (req, res) => {
     if (!teamId) {
         return res.status(400).json({ success: false, message: "Missing team_id" });
     }
+
     const sql = `
-    SELECT 
-      pr.name,
-      pos.position_desc AS role
-    FROM TEAM_PLAYER tp
-    JOIN PLAYER p ON tp.player_id = p.player_id
-    JOIN PERSON pr ON p.player_id = pr.kfupm_id
-    JOIN PLAYING_POSITION pos ON p.position_to_play = pos.position_id
-    WHERE tp.team_id = ?;
-  `;
+        SELECT
+            pr.name,
+            p.jersey_no,
+            pos.position_desc AS role,
+            t.tr_name AS tournament
+        FROM TEAM_PLAYER tp
+                 JOIN PLAYER p ON tp.player_id = p.player_id
+                 JOIN PERSON pr ON p.player_id = pr.kfupm_id
+                 JOIN PLAYING_POSITION pos ON p.position_to_play = pos.position_id
+                 JOIN TOURNAMENT t ON tp.tr_id = t.tr_id
+        WHERE tp.team_id = ?;
+    `;
+
     db.query(sql, [teamId], (err, result) => {
         if (err) {
-            console.error("Team members query error:", err);
-            return res.status(500).json({ success: false, message: "Database error" });
+            console.error("Team members query error:", err.sqlMessage);
+            return res.status(500).json({ success: false, message: "Database error", error: err.sqlMessage });
         }
         res.json(result);
     });
 });
+
 
 
 // use welcome.html as the default page

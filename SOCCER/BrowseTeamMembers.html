@@ -21,7 +21,9 @@
       <thead>
         <tr>
           <th>Name</th>
+          <th>Jersey #</th>
           <th>Role</th>
+          <th>Tournament</th>
         </tr>
       </thead>
       <tbody>
@@ -61,7 +63,9 @@
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${m.name}</td>
+              <td>${m.jersey_no}</td>
               <td>${m.role}</td>
+              <td>${m.tournament}</td>
             `;
             tableBody.appendChild(row);
           });

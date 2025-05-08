@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="820870f8-1b9d-4f92-a267-5067627e6bd9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/SOCCER/approvePlayer.html" beforeDir="false" afterPath="$PROJECT_DIR$/SOCCER/approvePlayer.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SOCCER/BrowseTeamMembers.html" beforeDir="false" afterPath="$PROJECT_DIR$/SOCCER/BrowseTeamMembers.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/server.js" beforeDir="false" afterPath="$PROJECT_DIR$/server.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -51,7 +52,7 @@
     "Node.js.server.js.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "Merging main",
+    "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -76,7 +77,7 @@
       <updated>1746197585196</updated>
       <workItem from="1746197589814" duration="1551000" />
       <workItem from="1746464828862" duration="5515000" />
-      <workItem from="1746691031222" duration="2361000" />
+      <workItem from="1746691031222" duration="3022000" />
     </task>
     <servers />
   </component>
