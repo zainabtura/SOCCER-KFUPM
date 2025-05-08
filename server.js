@@ -449,6 +449,65 @@ app.get('/api/team-members-in-match', (req, res) => {
   });
 });
 
+
+app.get('/api/pending-players', (req, res) => {
+  const sql = `
+    SELECT 
+      r.player_id,
+      r.team_id,
+      r.tr_id,
+      p.name,
+      p.date_of_birth,
+      p.kfupm_id,
+      t.team_name
+    FROM REGISTRATION_REQUEST r
+    JOIN PERSON p ON r.player_id = p.kfupm_id
+    JOIN TEAM t ON r.team_id = t.team_id
+    WHERE r.status = 'pending';
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error("Error fetching pending players:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+    res.json(result);
+  });
+});
+
+app.post('/api/approve-player', (req, res) => {
+  const { player_id, team_id, tr_id } = req.body;
+
+  const insertSql = `
+    INSERT INTO TEAM_PLAYER (player_id, team_id, tr_id) VALUES (?, ?, ?)
+  `;
+  const updateStatus = `
+    UPDATE REGISTRATION_REQUEST SET status = 'approved'
+    WHERE player_id = ? AND team_id = ? AND tr_id = ?
+  `;
+
+  db.query(insertSql, [player_id, team_id, tr_id], (err) => {
+    if (err) return res.status(500).json({ error: 'Insert failed' });
+
+    db.query(updateStatus, [player_id, team_id, tr_id], (err2) => {
+      if (err2) return res.status(500).json({ error: 'Update failed' });
+      res.json({ success: true });
+    });
+  });
+});
+
+app.post('/api/reject-player', (req, res) => {
+  const { player_id, team_id, tr_id } = req.body;
+  const updateStatus = `
+    UPDATE REGISTRATION_REQUEST SET status = 'rejected'
+    WHERE player_id = ? AND team_id = ? AND tr_id = ?
+  `;
+  db.query(updateStatus, [player_id, team_id, tr_id], (err) => {
+    if (err) return res.status(500).json({ error: 'Update failed' });
+    res.json({ success: true });
+  });
+});
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
