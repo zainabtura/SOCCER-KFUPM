@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Match Details</title>
+  <link rel="stylesheet" href="matchResultsDetails.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="browseMatches.html" class="back-link">&larr; Back to Matches</a>
+
+    <h1 class="page-title" id="match-title">Match Details</h1>
+    <p><strong>Date:</strong> <span id="match-date"></span></p>
+    <p><strong>Final Score:</strong> <span id="match-score"></span></p>
+    <p><strong>Venue:</strong> <span id="match-venue"></span></p>
+    <p><strong>Audience:</strong> <span id="match-audience"></span></p>
+    <div id="referee-section"></div>
+
+    <h2>Player Stats</h2>
+    <table class="details-table">
+      <thead>
+        <tr>
+          <th>Player Name</th>
+          <th>Team</th>
+          <th>Goals</th>
+          <th>Yellow Cards</th>
+          <th>Red Cards</th>
+        </tr>
+      </thead>
+      <tbody id="player-stats-body">
+        <!-- Player rows will be added here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadMatchDetails() {
+      const params = new URLSearchParams(window.location.search);
+      const matchId = params.get("match_id");
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/match-details/${matchId}`);
+        const data = await res.json();
+
+        document.getElementById("match-date").textContent = new Date(data.play_date).toLocaleDateString();
+        document.getElementById("match-score").textContent = data.goal_score;
+        document.getElementById("match-venue").textContent = data.venue_name;
+        document.getElementById("match-audience").textContent = data.audience;
+
+        const refSection = document.getElementById("referee-section");
+        if (data.referees && data.referees.length) {
+          refSection.innerHTML = "<strong>Officials:</strong><ul>" + 
+            data.referees.map(r => `<li>${r.type}: ${r.name}</li>`).join("") +
+            "</ul>";
+        }
+
+        const tbody = document.getElementById("player-stats-body");
+        data.players.forEach(player => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${player.name}</td>
+            <td>${player.team}</td>
+            <td>${player.goals}</td>
+            <td>${player.yellow_cards}</td>
+            <td>${player.red_cards}</td>
+          `;
+          tbody.appendChild(row);
+        });
+
+      } catch (err) {
+        alert("Failed to load match details");
+        console.error(err);
+      }
+    }
+
+    loadMatchDetails();
+  </script>
+</body>
+</html>

@@ -71,8 +71,7 @@
             row.innerHTML = `
               <td><strong>${m.goal_score}</strong><br/>${m.team1} vs ${m.team2}</td>
               <td>${matchDate}</td>
-              <td><a href="matchResultsDetails.html?match_no=${m.match_no}" class="details-btn">All Details</a></td>
-            `;
+              <td><a href="matchResultsDetails.html?match_id=${m.match_no}" class="details-btn">All Details</a></td>            `;
             tableBody.appendChild(row);
           });
 
