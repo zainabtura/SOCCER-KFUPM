@@ -952,6 +952,97 @@ app.get('/api/yellowCards', (req, res) => {
   });
 });
 
+
+app.get('/api/tournaments', (req, res) => {
+  const sql = `SELECT tr_id, tr_name FROM TOURNAMENT ORDER BY tr_name`;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching tournaments:", err);
+      return res.status(500).json({ success: false, message: "Database error." });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/topTeams/:tr_id', (req, res) => {
+  const { tr_id } = req.params;
+  const sql = `
+    SELECT 
+      t.team_name,
+      tt.points
+    FROM TOURNAMENT_TEAM tt
+    JOIN TEAM t ON t.team_id = tt.team_id
+    WHERE tt.tr_id = ?
+    ORDER BY tt.points DESC
+    LIMIT 3;
+  `;
+
+  db.query(sql, [tr_id], (err, results) => {
+    if (err) {
+      console.error("Error fetching top teams:", err);
+      return res.status(500).json({ success: false, message: "Database error." });
+    }
+    res.json(results);
+  });
+});
+
+app.get('/api/refereeMatches', (req, res) => {
+  const sql = `
+    SELECT per.name, COUNT(*) AS match_count
+    FROM MATCH_SUPPORT ms
+    JOIN PERSON per ON ms.support_id = per.kfupm_id
+    WHERE ms.support_type = 'RF'
+    GROUP BY per.name
+    ORDER BY match_count DESC;
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error("Referee count error:", err.sqlMessage);
+      return res.status(500).json({ error: "Failed to load referee data" });
+    }
+    res.json(result);
+  });
+});
+
+
+app.get('/api/goals-by-team/:tr_id', (req, res) => {
+  const tr_id = req.params.tr_id;
+
+  const sql = `
+    SELECT 
+      t.team_name, 
+      COALESCE(SUM(g.goal_score), 0) AS total_goals
+    FROM TOURNAMENT_TEAM tt
+    JOIN TEAM t ON tt.team_id = t.team_id
+    LEFT JOIN match_details g ON g.team_id = tt.team_id
+    WHERE tt.tr_id = ?
+    GROUP BY t.team_name
+    ORDER BY total_goals DESC;
+  `;
+
+  db.query(sql, [tr_id], (err, results) => {
+    if (err) {
+      console.error("Goal stats error:", err.sqlMessage);
+      return res.status(500).json({ error: "Database error." });
+    }
+    res.json(results);
+  });
+});
+
+
+app.get('/api/tournaments', (req, res) => {
+  db.query('SELECT tr_id, tr_name FROM TOURNAMENT', (err, results) => {
+    if (err) {
+      console.error("Tournaments fetch error:", err.sqlMessage);
+      return res.status(500).json({ error: "Could not fetch tournaments." });
+    }
+    res.json(results);
+  });
+});
+
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));

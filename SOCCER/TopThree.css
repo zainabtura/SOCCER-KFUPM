@@ -1,0 +1,54 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f1f5f9;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    width: 80%;
+    margin: auto;
+    padding-top: 40px;
+  }
+  
+  h1 {
+    text-align: center;
+    color: #01159C;
+    margin-bottom: 20px;
+  }
+  
+  .back-link {
+    display: block;
+    margin-bottom: 20px;
+    color: #01159C;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  label {
+    font-weight: bold;
+  }
+  
+  select {
+    margin-bottom: 20px;
+    padding: 8px;
+    font-size: 16px;
+  }
+  
+  .top-teams-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: white;
+  }
+  
+  .top-teams-table th,
+  .top-teams-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .top-teams-table th {
+    background-color: #01159C;
+    color: white;
+  }

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Top 3 Teams</title>
+  <link rel="stylesheet" href="TopThree.css" />
+</head>
+<body>
+  <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+  <main class="container">
+    <h1>Top 3 Teams by Points</h1>
+
+    <label for="tournamentSelect">Select Tournament:</label>
+    <select id="tournamentSelect"></select>
+
+    <table id="topTeamsTable" class="top-teams-table">
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Points</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Top teams will be added here -->
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const tournamentSelect = document.getElementById("tournamentSelect");
+      const tableBody = document.querySelector("#topTeamsTable tbody");
+
+      const tournaments = await fetch("http://localhost:3000/api/tournaments").then(res => res.json());
+      tournaments.forEach(t => {
+        const option = document.createElement("option");
+        option.value = t.tr_id;
+        option.text = t.tr_name;
+        tournamentSelect.appendChild(option);
+      });
+
+      tournamentSelect.addEventListener("change", async () => {
+        const tr_id = tournamentSelect.value;
+        const res = await fetch(`http://localhost:3000/api/topTeams/${tr_id}`);
+        const teams = await res.json();
+
+        tableBody.innerHTML = "";
+        teams.forEach(team => {
+          const row = document.createElement("tr");
+          row.innerHTML = `<td>${team.team_name}</td><td>${team.points}</td>`;
+          tableBody.appendChild(row);
+        });
+      });
+
+      tournamentSelect.dispatchEvent(new Event("change"));
+    });
+  </script>
+</body>
+</html>

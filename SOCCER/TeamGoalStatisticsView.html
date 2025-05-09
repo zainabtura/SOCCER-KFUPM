@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Team Goal Statistics</title>
+  <link rel="stylesheet" href="TeamGoalStatisticsView.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+    <h1>Team Goal Statistics</h1>
+
+    <label for="tournamentSelect">Select Tournament:</label>
+    <select id="tournamentSelect"></select>
+
+    <table id="goalsTable">
+      <thead>
+        <tr>
+          <th>Team Name</th>
+          <th>Total Goals</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const select = document.getElementById("tournamentSelect");
+      const tableBody = document.querySelector("#goalsTable tbody");
+
+      try {
+        const tournaments = await fetch("http://localhost:3000/api/tournaments").then(res => res.json());
+
+        tournaments.forEach(t => {
+          const option = document.createElement("option");
+          option.value = t.tr_id;
+          option.textContent = t.tr_name;
+          select.appendChild(option);
+        });
+
+        select.addEventListener("change", async () => {
+          const trId = select.value;
+          const res = await fetch(`http://localhost:3000/api/goals-by-team/${trId}`);
+          const teams = await res.json();
+          tableBody.innerHTML = "";
+
+          teams.forEach(team => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${team.team_name}</td><td>${team.total_goals}</td>`;
+            tableBody.appendChild(row);
+          });
+        });
+
+        if (select.value) select.dispatchEvent(new Event("change"));
+      } catch (err) {
+        alert("Failed to load goal stats.");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #eef5f9;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 40px auto;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    text-align: center;
+    color: #01159C;
+    margin-bottom: 25px;
+  }
+  
+  .back-link {
+    display: block;
+    margin: 10px 0 20px 30px;
+    color: #01159C;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  #refereeTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  #refereeTable th,
+  #refereeTable td {
+    padding: 12px;
+    text-align: center;
+    border: 1px solid #ccc;
+  }
+  
+  #refereeTable th {
+    background-color: #01159C;
+    color: white;
+  }

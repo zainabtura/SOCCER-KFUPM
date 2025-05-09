@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Referee Match Counts</title>
+  <link rel="stylesheet" href="RefereeMatchCountView.css" />
+</head>
+<body>
+    <main class="container">
+      <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+  
+      <h1>Referees & Match Counts</h1>
+      <table id="refereeTable">
+        <thead>
+          <tr>
+            <th>Referee Name</th>
+            <th>Matches Officiated</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows added via JS -->
+        </tbody>
+      </table>
+    </main>
+  
+    <script>
+      window.addEventListener("DOMContentLoaded", async () => {
+        const tbody = document.querySelector("#refereeTable tbody");
+        try {
+          const res = await fetch("http://localhost:3000/api/refereeMatches");
+          const data = await res.json();
+  
+          data.forEach(ref => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${ref.name}</td>
+              <td>${ref.match_count}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        } catch {
+          alert("Error loading referee data.");
+        }
+      });
+    </script>
+  </body>
+</html>
