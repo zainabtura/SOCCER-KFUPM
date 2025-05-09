@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Match Referee Details</title>
+  <link rel="stylesheet" href="viewMatchReferees.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link">&larr; Back to Dashboard</a>
+    <h1 class="page-title">Match Referee Details</h1>
+
+    <table class="ref-table">
+      <thead>
+        <tr>
+          <th>Match No</th>
+          <th>Date</th>
+          <th>Referee Name</th>
+          <th>Role</th>
+        </tr>
+      </thead>
+      <tbody id="ref-body">
+        <!-- Referee rows will go here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadRefereeDetails() {
+      try {
+        const res = await fetch('http://localhost:3000/api/match-referees');
+        const data = await res.json();
+
+        const tbody = document.getElementById("ref-body");
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.match_no}</td>
+            <td>${new Date(row.play_date).toLocaleDateString()}</td>
+            <td>${row.name}</td>
+            <td>${row.role}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        alert("Failed to load referee details");
+        console.error(err);
+      }
+    }
+
+    loadRefereeDetails();
+  </script>
+</body>
+</html>

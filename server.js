@@ -750,6 +750,34 @@ app.get('/api/match-venues', (req, res) => {
 });
 
 
+app.get('/api/match-referees', (req, res) => {
+  const sql = `
+    SELECT 
+      mp.match_no,
+      mp.play_date,
+      per.name,
+      CASE 
+        WHEN ms.support_type = 'RF' THEN 'Referee'
+        WHEN ms.support_type = 'AR' THEN 'Assistant Referee'
+        ELSE ms.support_type
+      END AS role
+    FROM MATCH_PLAYED mp
+    JOIN MATCH_SUPPORT ms ON mp.match_no = ms.match_no
+    JOIN PERSON per ON ms.support_id = per.kfupm_id
+    ORDER BY mp.match_no, ms.support_type;
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error loading referees:", err);
+      return res.status(500).json({ error: "Failed to load referee data" });
+    }
+
+    res.json(results);
+  });
+});
+
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
