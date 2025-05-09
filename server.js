@@ -642,89 +642,74 @@ app.get('/api/tournament-details/:tr_id', (req, res) => {
 
 
 
-app.get('/api/match-details/:match_id', (req, res) => {
-  const matchId = req.params.match_id;
-
-  // 1. Match overview info
-  const matchQuery = `
+app.get('/api/match-results-with-scorers', (req, res) => {
+  const sql = `
     SELECT 
-      mp.play_date,
-      mp.goal_score,
-      mp.audience,
-      v.venue_name
+      mp.match_no,
+      t1.team_name AS team1,
+      (
+        SELECT GROUP_CONCAT(DISTINCT per.name ORDER BY per.name SEPARATOR ', ')
+        FROM GOAL_DETAILS gd
+        JOIN PLAYER p ON p.player_id = gd.player_id
+        JOIN PERSON per ON per.kfupm_id = p.player_id
+        WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id1
+      ) AS team1_scorers,
+      (
+        SELECT COUNT(*)
+        FROM GOAL_DETAILS gd
+        WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id1
+      ) AS team1_goals,
+
+      t2.team_name AS team2,
+      (
+        SELECT GROUP_CONCAT(DISTINCT per.name ORDER BY per.name SEPARATOR ', ')
+        FROM GOAL_DETAILS gd
+        JOIN PLAYER p ON p.player_id = gd.player_id
+        JOIN PERSON per ON per.kfupm_id = p.player_id
+        WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id2
+      ) AS team2_scorers,
+      (
+        SELECT COUNT(*)
+        FROM GOAL_DETAILS gd
+        WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id2
+      ) AS team2_goals,
+
+      CONCAT(
+        (SELECT COUNT(*) FROM GOAL_DETAILS gd
+         WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id1),
+        '-',
+        (SELECT COUNT(*) FROM GOAL_DETAILS gd
+         WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id2)
+      ) AS final_score,
+
+      CASE 
+        WHEN
+          (SELECT COUNT(*) FROM GOAL_DETAILS gd
+           WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id1) >
+          (SELECT COUNT(*) FROM GOAL_DETAILS gd
+           WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id2)
+          THEN t1.team_name
+        WHEN
+          (SELECT COUNT(*) FROM GOAL_DETAILS gd
+           WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id1) <
+          (SELECT COUNT(*) FROM GOAL_DETAILS gd
+           WHERE gd.match_no = mp.match_no AND gd.team_id = mp.team_id2)
+          THEN t2.team_name
+        ELSE 'Draw'
+      END AS result
+
     FROM MATCH_PLAYED mp
-    JOIN VENUE v ON mp.venue_id = v.venue_id
-    WHERE mp.match_no = ?
+    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+    ORDER BY mp.match_no;
   `;
 
-  // 2. Per-player actual goal and card counts (no duplicates)
-  const playerStatsQuery = `
-    SELECT 
-      per.name AS player_name,
-      t.team_name,
-      COUNT(DISTINCT gd.goal_id) AS goals,
-      SUM(CASE WHEN pb.sent_off = 'Y' THEN 1 ELSE 0 END) AS red_cards,
-      SUM(CASE WHEN pb.sent_off = 'N' THEN 1 ELSE 0 END) AS yellow_cards
-    FROM PLAYER p
-    JOIN PERSON per ON p.player_id = per.kfupm_id
-    JOIN TEAM_PLAYER tp ON p.player_id = tp.player_id
-    JOIN TEAM t ON t.team_id = tp.team_id
-    LEFT JOIN GOAL_DETAILS gd ON gd.player_id = p.player_id AND gd.match_no = ?
-    LEFT JOIN PLAYER_BOOKED pb ON pb.player_id = p.player_id AND pb.match_no = ?
-    WHERE tp.tr_id IN (
-      SELECT tr_id FROM MATCH_PLAYED WHERE match_no = ?
-    ) AND tp.team_id IN (
-      SELECT team_id1 FROM MATCH_PLAYED WHERE match_no = ?
-      UNION
-      SELECT team_id2 FROM MATCH_PLAYED WHERE match_no = ?
-    )
-    GROUP BY per.name, t.team_name
-    ORDER BY per.name
-  `;
-
-  // 3. Referee info
-  const refereeQuery = `
-    SELECT 
-      per.name,
-      ms.support_type
-    FROM MATCH_SUPPORT ms
-    JOIN PERSON per ON ms.support_id = per.kfupm_id
-    WHERE ms.match_no = ?
-  `;
-
-  // --- Queries Execution ---
-  db.query(matchQuery, [matchId], (err, matchResult) => {
-    if (err || !matchResult.length) {
-      return res.status(500).json({ error: "Failed to load match info" });
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error in match results with scorers:", err);
+      return res.status(500).json({ error: "Failed to load match results" });
     }
-
-    const matchData = matchResult[0];
-
-    db.query(playerStatsQuery, [matchId, matchId, matchId, matchId, matchId], (err2, playerRows) => {
-      if (err2) {
-        return res.status(500).json({ error: "Failed to load player stats" });
-      }
-
-      db.query(refereeQuery, [matchId], (err3, refs) => {
-        if (err3) {
-          return res.status(500).json({ error: "Failed to load referees" });
-        }
-
-        const referees = refs.map(r => ({
-          name: r.name,
-          type: r.support_type === 'RF' ? 'Referee' : 'Assistant Referee'
-        }));
-
-        res.json({
-          play_date: matchData.play_date,
-          goal_score: matchData.goal_score,
-          audience: matchData.audience,
-          venue_name: matchData.venue_name,
-          referees,
-          players: playerRows
-        });
-      });
-    });
+    res.json(results);
   });
 });
 

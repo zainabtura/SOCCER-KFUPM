@@ -3,78 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Match Details</title>
+  <title>Match Results with Scorers</title>
   <link rel="stylesheet" href="matchResultsDetails.css" />
 </head>
 <body>
   <div class="container">
-    <a href="browseMatches.html" class="back-link">&larr; Back to Matches</a>
+    <a href="BrowseMatches.html" class="back-link">&larr; Back to all matches</a>
 
-    <h1 class="page-title" id="match-title">Match Details</h1>
-    <p><strong>Date:</strong> <span id="match-date"></span></p>
-    <p><strong>Final Score:</strong> <span id="match-score"></span></p>
-    <p><strong>Venue:</strong> <span id="match-venue"></span></p>
-    <p><strong>Audience:</strong> <span id="match-audience"></span></p>
-    <div id="referee-section"></div>
+    <h1 class="page-title">Match Results with Scorers</h1>
 
-    <h2>Player Stats</h2>
     <table class="details-table">
       <thead>
         <tr>
-          <th>Player Name</th>
-          <th>Team</th>
+          <th>Match No</th>
+          <th>Team 1</th>
+          <th>Scorers</th>
           <th>Goals</th>
-          <th>Yellow Cards</th>
-          <th>Red Cards</th>
+          <th>Team 2</th>
+          <th>Scorers</th>
+          <th>Goals</th>
+          <th>Final Score</th>
+          <th>Result</th>
         </tr>
       </thead>
-      <tbody id="player-stats-body">
-        <!-- Player rows will be added here -->
+      <tbody id="results-body">
+        <!-- JS will insert rows here -->
       </tbody>
     </table>
   </div>
 
   <script>
-    async function loadMatchDetails() {
-      const params = new URLSearchParams(window.location.search);
-      const matchId = params.get("match_id");
-
+    async function loadMatchResults() {
       try {
-        const res = await fetch(`http://localhost:3000/api/match-details/${matchId}`);
+        const res = await fetch("http://localhost:3000/api/match-results-with-scorers");
         const data = await res.json();
 
-        document.getElementById("match-date").textContent = new Date(data.play_date).toLocaleDateString();
-        document.getElementById("match-score").textContent = data.goal_score;
-        document.getElementById("match-venue").textContent = data.venue_name;
-        document.getElementById("match-audience").textContent = data.audience;
+        const tbody = document.getElementById("results-body");
+        tbody.innerHTML = "";
 
-        const refSection = document.getElementById("referee-section");
-        if (data.referees && data.referees.length) {
-          refSection.innerHTML = "<strong>Officials:</strong><ul>" + 
-            data.referees.map(r => `<li>${r.type}: ${r.name}</li>`).join("") +
-            "</ul>";
-        }
-
-        const tbody = document.getElementById("player-stats-body");
-        data.players.forEach(player => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${player.name}</td>
-            <td>${player.team}</td>
-            <td>${player.goals}</td>
-            <td>${player.yellow_cards}</td>
-            <td>${player.red_cards}</td>
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.match_no}</td>
+            <td>${row.team1}</td>
+            <td>${row.team1_scorers || '-'}</td>
+            <td>${row.team1_goals}</td>
+            <td>${row.team2}</td>
+            <td>${row.team2_scorers || '-'}</td>
+            <td>${row.team2_goals}</td>
+            <td>${row.final_score}</td>
+            <td>${row.result}</td>
           `;
-          tbody.appendChild(row);
+          tbody.appendChild(tr);
         });
 
       } catch (err) {
-        alert("Failed to load match details");
-        console.error(err);
+        console.error("Failed to load match results:", err);
+        alert("Failed to load match results.");
       }
     }
 
-    loadMatchDetails();
+    loadMatchResults();
   </script>
 </body>
 </html>
