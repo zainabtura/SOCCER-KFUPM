@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Enter Match Results</title>
+  <link rel="stylesheet" href="EnterResults.css" />
+</head>
+<body>
+  <div class="container">
+    <h1 class="page-title">Enter Match Results</h1>
+
+    <form id="result-form">
+      <label for="match">Select Match:</label>
+      <select id="match" required></select>
+
+      <label for="team1_goals">Team 1 Goals:</label>
+      <input type="number" id="team1_goals" required>
+
+      <label for="team2_goals">Team 2 Goals:</label>
+      <input type="number" id="team2_goals" required>
+
+      <button type="submit" class="submit-button">Add Result</button>
+    </form>
+
+    <div id="popup" class="popup hidden">
+      <p>Result successfully entered!</p>
+      <div id="points-display"></div>
+      <button onclick="closePopup()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    let matchMap = {};
+
+    async function loadMatches() {
+      const res = await fetch('http://localhost:3000/api/pending-matches');
+      const matches = await res.json();
+
+      const matchSelect = document.getElementById('match');
+      matches.forEach(match => {
+        const option = document.createElement('option');
+        option.value = match.match_no;
+        option.text = `Match ${match.match_no}: ${match.team1} vs ${match.team2}`;
+        matchSelect.appendChild(option);
+
+        matchMap[match.match_no] = {
+          team1_id: match.team1_id,
+          team2_id: match.team2_id
+        };
+      });
+    }
+
+    function closePopup() {
+      document.getElementById('popup').classList.add('hidden');
+    }
+
+    document.getElementById('result-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const match_no = document.getElementById('match').value;
+      const team1_goals = document.getElementById('team1_goals').value;
+      const team2_goals = document.getElementById('team2_goals').value;
+
+      const { team1_id, team2_id } = matchMap[match_no];
+
+      const res = await fetch('http://localhost:3000/api/enter-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ match_no, team1_id, team2_id, team1_goals, team2_goals })
+      });
+
+      const result = await res.json();
+      if (result.success) {
+        const pointsHTML = result.points.map(p => `<p>${p.team_name}: ${p.points} pts</p>`).join('');
+        document.getElementById('points-display').innerHTML = pointsHTML;
+        document.getElementById('popup').classList.remove('hidden');
+      } else {
+        alert('Error saving result.');
+      }
+    });
+
+    loadMatches();
+  </script>
+</body>
+</html>
