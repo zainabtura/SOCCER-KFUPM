@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Match Venue Details</title>
+  <link rel="stylesheet" href="viewMatchVenue.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link">&larr; Back to Dashboard</a>
+    <h1 class="page-title">Match Venue Details</h1>
+
+    <table class="venue-table">
+      <thead>
+        <tr>
+          <th>Match No</th>
+          <th>Date</th>
+          <th>Venue</th>
+          <th>Capacity</th>
+        </tr>
+      </thead>
+      <tbody id="venue-body">
+        <!-- Venue rows will be loaded here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    async function loadVenueDetails() {
+      try {
+        const res = await fetch('http://localhost:3000/api/match-venues');
+        const data = await res.json();
+
+        const tbody = document.getElementById("venue-body");
+        data.forEach(row => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${row.match_no}</td>
+            <td>${new Date(row.play_date).toLocaleDateString()}</td>
+            <td>${row.venue_name}</td>
+            <td>${row.venue_capacity}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        alert("Failed to load venue details");
+        console.error(err);
+      }
+    }
+
+    loadVenueDetails();
+  </script>
+</body>
+</html>

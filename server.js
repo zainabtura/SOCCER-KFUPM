@@ -729,6 +729,26 @@ app.get('/api/match-details/:match_id', (req, res) => {
 });
 
 
+app.get('/api/match-venues', (req, res) => {
+  const sql = `
+    SELECT 
+      mp.match_no, mp.play_date, 
+      v.venue_name, v.venue_capacity
+    FROM MATCH_PLAYED mp
+    JOIN VENUE v ON mp.venue_id = v.venue_id
+    ORDER BY mp.play_date;
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching match venues:", err);
+      return res.status(500).json({ error: "Failed to load venues" });
+    }
+
+    res.json(results);
+  });
+});
+
 
 // use welcome.html as the default page
 app.get('/', (req, res) => {

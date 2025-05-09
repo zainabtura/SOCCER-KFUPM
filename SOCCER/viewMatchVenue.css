@@ -1,0 +1,45 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7fa;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 40px auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  
+  .page-title {
+    text-align: center;
+    color: #01159C;
+    margin-bottom: 30px;
+  }
+  
+  .back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    color: #01159C;
+    text-decoration: none;
+    font-weight: bold;
+  }
+  
+  .venue-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .venue-table th, .venue-table td {
+    border: 1px solid #01159C;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .venue-table th {
+    background-color: #01159C;
+    color: white;
+  }
