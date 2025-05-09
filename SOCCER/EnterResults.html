@@ -8,7 +8,13 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="page-title">Enter Match Results</h1>
+
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <a href="AdminHomePage.html" class="back-link" style="font-size: 16px; text-decoration: none;">&larr; Home Page</a>
+        <h1 class="page-title" style="margin: 0 auto; text-align: center;">Enter Match Results</h1>
+        <div style="width: 100px;"></div> <!-- Invisible spacer to keep center alignment -->
+      </div>
+
 
     <form id="result-form">
       <label for="match">Select Match:</label>
@@ -24,9 +30,9 @@
     </form>
 
     <div id="popup" class="popup hidden">
-      <p>Result successfully entered!</p>
+      <p>✅ Result successfully entered!</p>
       <div id="points-display"></div>
-      <button onclick="closePopup()">Close</button>
+      <button onclick="window.location.href='AdminHomePage.html'">Close</button>
     </div>
   </div>
 
@@ -38,6 +44,8 @@
       const matches = await res.json();
 
       const matchSelect = document.getElementById('match');
+      matchSelect.innerHTML = "";
+
       matches.forEach(match => {
         const option = document.createElement('option');
         option.value = match.match_no;
@@ -45,6 +53,8 @@
         matchSelect.appendChild(option);
 
         matchMap[match.match_no] = {
+          team1: match.team1,
+          team2: match.team2,
           team1_id: match.team1_id,
           team2_id: match.team2_id
         };
@@ -56,27 +66,51 @@
     }
 
     document.getElementById('result-form').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const match_no = document.getElementById('match').value;
-      const team1_goals = document.getElementById('team1_goals').value;
-      const team2_goals = document.getElementById('team2_goals').value;
+    e.preventDefault();
 
-      const { team1_id, team2_id } = matchMap[match_no];
+    const match_no = document.getElementById('match').value;
+    const team1_goals = parseInt(document.getElementById('team1_goals').value);
+    const team2_goals = parseInt(document.getElementById('team2_goals').value);
 
-      const res = await fetch('http://localhost:3000/api/enter-result', {
+    const matchInfo = matchMap[match_no];
+    if (!matchInfo) {
+        alert("⚠️ Could not find selected match info.");
+        return;
+    }
+
+    const { team1_id, team2_id, team1, team2 } = matchInfo;
+
+    const res = await fetch('http://localhost:3000/api/enter-result', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ match_no, team1_id, team2_id, team1_goals, team2_goals })
-      });
+    });
 
-      const result = await res.json();
-      if (result.success) {
-        const pointsHTML = result.points.map(p => `<p>${p.team_name}: ${p.points} pts</p>`).join('');
-        document.getElementById('points-display').innerHTML = pointsHTML;
+    const result = await res.json();
+    console.log("Server result:", result);
+
+    if (result.success) {
+        let team1Points = 0;
+        let team2Points = 0;
+
+        if (team1_goals > team2_goals) {
+        team1Points = 3;
+        } else if (team2_goals > team1_goals) {
+        team2Points = 3;
+        } else {
+        team1Points = team2Points = 1;
+        }
+
+        const display = `
+        <p>${team1 || 'Team 1'} gets: ${team1Points} point(s)</p>
+        <p>${team2 || 'Team 2'} gets: ${team2Points} point(s)</p>
+        `;
+        document.getElementById('points-display').innerHTML = display;
         document.getElementById('popup').classList.remove('hidden');
-      } else {
-        alert('Error saving result.');
-      }
+        await loadMatches(); // Refresh pending matches
+    } else {
+        alert('❌ Error saving result.');
+    }
     });
 
     loadMatches();

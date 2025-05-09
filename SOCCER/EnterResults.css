@@ -1,14 +1,14 @@
 /* EnterResults.css */
 
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f5f7fa;
     margin: 0;
     padding: 2rem;
   }
   
   .container {
-    max-width: 600px;
+    max-width: 1000px;
     margin: auto;
     background: white;
     padding: 2rem;
@@ -40,7 +40,7 @@ body {
   button {
     width: 100%;
     padding: 0.8rem;
-    background-color: #215a37;
+    background-color: #01159C;
     color: white;
     border: none;
     border-radius: 6px;
@@ -49,27 +49,31 @@ body {
   }
   
   button:hover {
-    background-color: #1c4c30;
+    background-color: #01159C;
   }
   
   /* Popup styling */
   .popup {
-    display: none;
     position: fixed;
-    top: 30%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     background: white;
-    padding: 2rem;
-    box-shadow: 0 0 25px rgba(0,0,0,0.2);
-    border-radius: 10px;
+    border: 2px solid #333;
+    padding: 20px;
     z-index: 1000;
-    text-align: center;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    border-radius: 10px;
   }
+  
+  .hidden {
+    display: none;
+  }
+  
   
   .popup h2 {
     margin-top: 0;
-    color: #215a37;
+    color: #01159C;
   }
   
   .popup ul {
@@ -101,3 +105,22 @@ body {
   .popup-overlay.show {
     display: block;
   }
+
+  #popup button {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background-color: #01159C;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+
+  .back-link {
+    text-decoration: none;
+    color: #01159C;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    display: inline-block;
+  }
+

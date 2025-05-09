@@ -856,6 +856,7 @@ Please arrive on time and be prepared. Good luck!
     });
 });
 
+// Backend Update (Node.js + MySQL)
 app.get('/api/pending-matches', (req, res) => {
   const sql = `
     SELECT 
@@ -873,50 +874,34 @@ app.get('/api/pending-matches', (req, res) => {
 
   db.query(sql, (err, results) => {
     if (err) {
-      console.error("Error fetching pending matches:", err);
+      console.error("🔴 SQL Error in /api/pending-matches:", err.sqlMessage);
       return res.status(500).json({ error: "Failed to load matches" });
     }
+
     res.json(results);
   });
 });
+
 
 app.post('/api/enter-result', (req, res) => {
   const { match_no, team1_id, team1_goals, team2_id, team2_goals } = req.body;
 
   const insertResults = `
     INSERT INTO match_details (match_no, team_id, win_lose, decided_by, goal_score, penalty_score, player_gk)
-    VALUES (?, ?, ?, 'N', ?, 0, NULL), (?, ?, ?, 'N', ?, 0, NULL)
+    VALUES (?, ?, ?, 'N', ?, 0, 1001), (?, ?, ?, 'N', ?, 0, 1001)
   `;
 
   const team1_result = team1_goals > team2_goals ? 'W' : team1_goals < team2_goals ? 'L' : 'D';
   const team2_result = team2_goals > team1_goals ? 'W' : team2_goals < team1_goals ? 'L' : 'D';
 
-  db.query(
-    insertResults,
-    [match_no, team1_id, team1_result, team1_goals, match_no, team2_id, team2_result, team2_goals],
-    (err) => {
-      if (err) {
-        console.error('Error inserting match result:', err);
-        return res.json({ success: false });
-      }
-
-      const pointsQuery = `
-        SELECT t.team_name, tr.points
-        FROM TEAM t
-        JOIN TEAM_RESULT tr ON t.team_id = tr.team_id
-        WHERE tr.tr_id IN (
-          SELECT tr_id FROM MATCH_PLAYED WHERE match_no = ?
-        )
-      `;
-      db.query(pointsQuery, [match_no], (err2, results) => {
-        if (err2) {
-          console.error('Error fetching updated points:', err2);
-          return res.json({ success: false });
-        }
-        res.json({ success: true, points: results });
-      });
+  db.query(insertResults, [match_no, team1_id, team1_result, team1_goals, match_no, team2_id, team2_result, team2_goals], (err) => {
+    if (err) {
+      console.error('Error inserting match result:', err);
+      return res.json({ success: false });
     }
-  );
+
+    res.json({ success: true });
+  });
 });
 
 // use welcome.html as the default page
