@@ -1042,7 +1042,6 @@ app.get('/api/tournaments', (req, res) => {
   });
 });
 
-
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
