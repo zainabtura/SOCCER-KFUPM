@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Remind Players</title>
+    <link rel="stylesheet" href="RemindPlayers.css" />
+
+</head>
+<body>
+<h1>Remind Players About Match</h1>
+
+<label for="matchSelect">Select Match:</label>
+<select id="matchSelect"></select>
+
+<table>
+    <thead>
+    <tr><th>Name</th><th>Email</th></tr>
+    </thead>
+    <tbody id="playerTableBody"></tbody>
+</table>
+
+<button id="sendEmailsBtn">Send Email Reminder</button>
+
+<script>
+    async function fetchMatches() {
+        const res = await fetch('/api/match-list');
+        const matches = await res.json();
+        const select = document.getElementById("matchSelect");
+
+        matches.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m.match_no;
+            opt.textContent = `${m.team_name1} vs ${m.team_name2} (Match ${m.match_no})`;
+            select.appendChild(opt);
+        });
+    }
+
+    async function fetchPlayers(matchNo) {
+        const res = await fetch(`/api/players-in-match-with-email?match_no=${matchNo}`);
+        const players = await res.json();
+        const tbody = document.getElementById("playerTableBody");
+        tbody.innerHTML = "";
+        players.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${p.name}</td><td>${p.email}</td>`;
+            tbody.appendChild(row);
+        });
+    }
+
+    document.getElementById("matchSelect").addEventListener("change", (e) => {
+        if (e.target.value) {
+            fetchPlayers(e.target.value);
+        }
+    });
+
+    document.getElementById("sendEmailsBtn").addEventListener("click", async () => {
+        const matchNo = document.getElementById("matchSelect").value;
+        const rows = document.querySelectorAll("#playerTableBody tr");
+
+        const players = Array.from(rows).map(row => ({
+            name: row.children[0].textContent,
+            email: row.children[1].textContent
+        }));
+
+        try {
+            const res = await fetch("/api/send-reminder-emails", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ match_no: matchNo, players })
+            });
+
+            const result = await res.json();
+            if (result.success) {
+                alert("✅ Emails sent successfully!");
+            } else {
+                alert("❌ Failed to send emails.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("❌ An error occurred.");
+        }
+    });
+
+
+    fetchMatches();
+</script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    background-color: white;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #01159C;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+label {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+}
+
+select {
+    padding: 0.8rem;
+    font-size: 1rem;
+    margin: 1rem 0 2rem;
+    width: 100%;
+    max-width: 500px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    background-color: white;
+}
+
+th, td {
+    padding: 1rem;
+    border: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background-color: #01159C;
+    color: white;
+}
+
+button {
+    display: block;
+    margin: 2rem auto 0;
+    padding: 1rem 2rem;
+    background-color: #01159C;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #0d1fac;
+}

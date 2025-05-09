@@ -2,6 +2,8 @@ const express = require('express');
 const mysql = require('mysql');
 const cors = require('cors');
 const path = require('path');
+const nodemailer = require('nodemailer');
+
 
 const app = express();
 const port = 3000;
@@ -776,6 +778,99 @@ app.get('/api/match-referees', (req, res) => {
     res.json(results);
   });
 });
+
+
+app.get('/api/players-in-match-with-email', (req, res) => {
+    const { match_no } = req.query;
+    if (!match_no) {
+        return res.status(400).json({ success: false, message: "Missing match_no" });
+    }
+    const sql = `
+    SELECT DISTINCT pr.name, pr.email
+    FROM MATCH_PLAYED mp
+    JOIN TEAM_PLAYER tp ON tp.team_id IN (mp.team_id1, mp.team_id2)
+    JOIN PERSON pr ON pr.kfupm_id = tp.player_id
+    WHERE mp.match_no = ?;
+  `;
+
+    db.query(sql, [match_no], (err, result) => {
+        if (err) {
+            console.error("Error fetching players with email:", err);
+            return res.status(500).json({ success: false, message: "Database error" });
+        }
+        res.json(result);
+    });
+});
+
+app.post('/api/send-reminder-emails', async (req, res) => {
+    const { match_no, players } = req.body;
+
+    if (!match_no || !players || !Array.isArray(players)) {
+        return res.status(400).json({ success: false, message: "Missing or invalid data." });
+    }
+
+    const matchInfoSql = `
+        SELECT t1.team_name AS team1, t2.team_name AS team2
+        FROM MATCH_PLAYED mp
+                 JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+                 JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+        WHERE mp.match_no = ?
+    `;
+
+    db.query(matchInfoSql, [match_no], async (matchErr, matchResult) => {
+        if (matchErr) {
+            console.error("Match lookup error:", matchErr);
+            return res.status(500).json({ success: false, message: "Failed to retrieve match info." });
+        }
+
+        if (matchResult.length === 0) {
+            return res.status(404).json({ success: false, message: "Match not found." });
+        }
+
+        const { team1, team2 } = matchResult[0];
+
+        // Email setup
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: 'safsalem123456@gmail.com',
+                pass: 'atmr qfea lpog ccem'
+            }
+        });
+
+        const subject = `Reminder: Match #${match_no} – ${team1} vs ${team2}`;
+        const body = (name) => `
+Dear ${name},
+
+This is a reminder that you have a scheduled match:
+
+Match #${match_no}: ${team1} vs ${team2}
+
+Please arrive on time and be prepared. Good luck!
+
+– Tournament Admin Team
+`;
+
+        try {
+            const emailPromises = players.map(player => {
+                const mailOptions = {
+                    from: 'safsalem123456@gmail.com',
+                    to: player.email,
+                    subject: subject,
+                    text: body(player.name)
+                };
+                return transporter.sendMail(mailOptions);
+            });
+
+            await Promise.all(emailPromises);
+            res.json({ success: true, message: "Emails sent successfully." });
+        } catch (error) {
+            console.error("Email sending error:", error);
+            res.status(500).json({ success: false, message: "Failed to send emails." });
+        }
+    });
+});
+
 
 
 // use welcome.html as the default page
