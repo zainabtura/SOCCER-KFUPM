@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Upcoming Matches</title>
+  <link rel="stylesheet" href="UpcomingMatchesView.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link" style="font-size: 16px; text-decoration: none;">&larr; Home Page</a>
+    <h1>Upcoming Matches</h1>
+    <ul id="match-list"></ul>
+  </div>
+
+  <script>
+    async function loadUpcomingMatches() {
+      const res = await fetch("http://localhost:3000/api/upcoming-matches");
+      const matches = await res.json();
+
+      const list = document.getElementById("match-list");
+      if (matches.length === 0) {
+        list.innerHTML = "<li>No upcoming matches found.</li>";
+        return;
+      }
+
+      matches.forEach(match => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <strong>${match.team1} vs ${match.team2}</strong>
+          <div class="date">📅 ${match.play_date}</div>`;
+        list.appendChild(item);
+      });
+    }
+
+    loadUpcomingMatches();
+  </script>
+</body>
+</html>

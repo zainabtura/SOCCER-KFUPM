@@ -904,6 +904,54 @@ app.post('/api/enter-result', (req, res) => {
   });
 });
 
+app.get('/api/upcoming-matches', (req, res) => {
+  const sql = `
+    SELECT 
+      mp.match_no,
+      t1.team_name AS team1,
+      t2.team_name AS team2,
+      mp.play_date
+    FROM MATCH_PLAYED mp
+    JOIN TEAM t1 ON mp.team_id1 = t1.team_id
+    JOIN TEAM t2 ON mp.team_id2 = t2.team_id
+    WHERE mp.play_date > CURDATE()
+    ORDER BY mp.play_date ASC
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching upcoming matches:", err);
+      return res.status(500).json({ error: "Failed to load upcoming matches" });
+    }
+    res.json(results);
+  });
+});
+
+// View players with yellow cards
+app.get('/api/yellowCards', (req, res) => {
+  const sql = `
+    SELECT
+      per.name AS player_name,
+      tm.team_name,
+      COUNT(*) AS yellow_card_count
+    FROM PLAYER_BOOKED pb
+    JOIN PLAYER p ON pb.player_id = p.player_id
+    JOIN PERSON per ON p.player_id = per.kfupm_id
+    JOIN TEAM tm ON pb.team_id = tm.team_id
+    WHERE pb.sent_off = 'N'
+    GROUP BY pb.player_id, per.name, tm.team_name
+    ORDER BY yellow_card_count DESC;
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error("Yellow cards query error:", err.sqlMessage);
+      return res.status(500).json({ success: false, message: "Database error.", error: err.sqlMessage });
+    }
+    res.json(result);
+  });
+});
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
