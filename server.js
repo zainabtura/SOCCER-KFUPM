@@ -1042,6 +1042,67 @@ app.get('/api/tournaments', (req, res) => {
   });
 });
 
+app.get('/api/players-without-goals', (req, res) => {
+  const { tr_id } = req.query;
+
+  if (!tr_id) {
+    return res.status(400).json({ success: false, message: "Missing tournament ID" });
+  }
+
+  const sql = `
+    SELECT 
+      pr.name AS player_name,
+      tm.team_name
+    FROM TEAM_PLAYER tp
+    JOIN PLAYER p ON tp.player_id = p.player_id
+    JOIN PERSON pr ON p.player_id = pr.kfupm_id
+    JOIN TEAM tm ON tp.team_id = tm.team_id
+    WHERE tp.tr_id = ?
+      AND p.player_id NOT IN (
+        SELECT DISTINCT g.player_id
+        FROM GOAL_DETAILS g
+        JOIN TEAM_PLAYER tp2 ON g.player_id = tp2.player_id
+        WHERE tp2.tr_id = ?
+      )
+    ORDER BY pr.name;
+  `;
+
+  db.query(sql, [tr_id, tr_id], (err, result) => {
+    if (err) {
+      console.error("Players without goals query error:", err.sqlMessage);
+      return res.status(500).json({ error: "Database error." });
+    }
+    res.json(result);
+  });
+});
+
+
+app.get('/api/matches-played', (req, res) => {
+  const sql = `
+    SELECT 
+      per.name AS player_name,
+      tm.team_name,
+      COUNT(DISTINCT mp.match_no) AS match_count
+    FROM PLAYER_IN_OUT pio
+    JOIN PLAYER p ON p.player_id = pio.player_id
+    JOIN PERSON per ON per.kfupm_id = p.player_id
+    JOIN TEAM_PLAYER tp ON tp.player_id = p.player_id
+    JOIN TEAM tm ON tp.team_id = tm.team_id
+    JOIN MATCH_PLAYED mp ON pio.match_no = mp.match_no
+    GROUP BY p.player_id, per.name, tm.team_name
+    ORDER BY match_count DESC;
+  `;
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Matches played query error:", err.sqlMessage);
+      return res.status(500).json({ error: "Failed to fetch match data." });
+    }
+    res.json(results);
+  });
+});
+
+
 // use welcome.html as the default page
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));

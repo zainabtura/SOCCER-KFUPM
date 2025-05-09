@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Total Matches Played</title>
+  <link rel="stylesheet" href="TotalMatchesPlayed.css" />
+</head>
+<body>
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+    <h1>Total Matches Played</h1>
+
+    <div class="cards-container" id="matchesContainer">
+      <!-- Cards added via JS -->
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const container = document.getElementById("matchesContainer");
+
+      try {
+        const res = await fetch("http://localhost:3000/api/matches-played");
+        const players = await res.json();
+
+        players.forEach(p => {
+          const card = document.createElement("div");
+          card.className = "match-card";
+          card.innerHTML = `
+            <h2>${p.player_name}</h2>
+            <p><strong>Team:</strong> ${p.team_name}</p>
+            <p><strong>Matches Played:</strong> ${p.match_count}</p>
+          `;
+          container.appendChild(card);
+        });
+      } catch {
+        container.innerHTML = "<p>❌ Failed to load data.</p>";
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Players Without Goals</title>
+  <link rel="stylesheet" href="PlayersWithoutGoals.css" />
+</head>
+<body>
+
+  <div class="container">
+    <a href="GuestHomePage.html" class="back-link">&larr; Home Page</a>
+    <h1>Players Without Goals</h1>
+    <label for="tournamentSelect">Select Tournament:</label>
+    <select id="tournamentSelect"></select>
+
+    <table id="playersTable" class="data-table">
+      <thead>
+        <tr>
+          <th>Player Name</th>
+          <th>Team Name</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Populated by JavaScript -->
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    window.addEventListener("DOMContentLoaded", async () => {
+      const tournamentSelect = document.getElementById("tournamentSelect");
+      const tableBody = document.querySelector("#playersTable tbody");
+
+      try {
+        const tourRes = await fetch("http://localhost:3000/api/tournaments");
+        const tournaments = await tourRes.json();
+
+        tournaments.forEach(t => {
+          const option = document.createElement("option");
+          option.value = t.tr_id;
+          option.textContent = t.tr_name;
+          tournamentSelect.appendChild(option);
+        });
+
+        tournamentSelect.addEventListener("change", async () => {
+          const tr_id = tournamentSelect.value;
+          const res = await fetch(`http://localhost:3000/api/players-without-goals?tr_id=${tr_id}`);
+          const players = await res.json();
+
+          tableBody.innerHTML = "";
+          players.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `<td>${p.player_name}</td><td>${p.team_name}</td>`;
+            tableBody.appendChild(row);
+          });
+        });
+
+        tournamentSelect.dispatchEvent(new Event("change"));
+      } catch (err) {
+        alert("Error loading data");
+      }
+    });
+  </script>
+</body>
+</html>

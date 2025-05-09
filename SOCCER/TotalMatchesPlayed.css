@@ -1,0 +1,46 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f7fa;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  h1 {
+    color: #01159C;
+    margin-bottom: 2rem;
+  }
+  
+  .back-link {
+    display: block;
+    text-align: left;
+    margin-bottom: 1rem;
+    color: #01159C;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  
+  .cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+  
+  .match-card {
+    background-color: white;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    text-align: left;
+  }
+  
+  .match-card h2 {
+    margin-top: 0;
+    color: #01159C;
+  }
