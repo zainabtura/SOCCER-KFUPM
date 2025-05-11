@@ -477,26 +477,60 @@ app.get('/api/pending-players', (req, res) => {
   });
 });
 
+// ✅ BACKEND FIXED ENDPOINT
 app.post('/api/approve-player', (req, res) => {
   const { player_id, team_id, tr_id } = req.body;
 
-  const insertSql = `
-    INSERT INTO TEAM_PLAYER (player_id, team_id, tr_id) VALUES (?, ?, ?)
-  `;
-  const updateStatus = `
-    UPDATE REGISTRATION_REQUEST SET status = 'approved'
-    WHERE player_id = ? AND team_id = ? AND tr_id = ?
-  `;
+  const defaultJersey = 0;
+  const defaultPosition = 100; // make sure 100 exists in PLAYING_POSITION
 
-  db.query(insertSql, [player_id, team_id, tr_id], (err) => {
-    if (err) return res.status(500).json({ error: 'Insert failed' });
+  // Check if player exists in PLAYER table
+  const checkPlayerQuery = 'SELECT * FROM PLAYER WHERE player_id = ?';
 
-    db.query(updateStatus, [player_id, team_id, tr_id], (err2) => {
-      if (err2) return res.status(500).json({ error: 'Update failed' });
-      res.json({ success: true });
-    });
+  db.query(checkPlayerQuery, [player_id], (checkErr, results) => {
+    if (checkErr) {
+      console.error("Error checking PLAYER existence:", checkErr);
+      return res.status(500).json({ success: false, message: "Database error on check." });
+    }
+
+    const insertPlayer = `INSERT INTO PLAYER (player_id, jersey_no, position_to_play) VALUES (?, ?, ?)`;
+    const insertTeamPlayer = `INSERT INTO TEAM_PLAYER (player_id, team_id, tr_id) VALUES (?, ?, ?)`;
+    const updateRequest = `UPDATE REGISTRATION_REQUEST SET status = 'approved' WHERE player_id = ? AND team_id = ? AND tr_id = ?`;
+
+    const addToTeamPlayer = () => {
+      db.query(insertTeamPlayer, [player_id, team_id, tr_id], (err2) => {
+        if (err2) {
+          console.error("Failed to insert into TEAM_PLAYER:", err2);
+          return res.status(500).json({ success: false, message: "Could not insert into TEAM_PLAYER." });
+        }
+
+        db.query(updateRequest, [player_id, team_id, tr_id], (err3) => {
+          if (err3) {
+            console.error("Failed to update REGISTRATION_REQUEST:", err3);
+            return res.status(500).json({ success: false, message: "Could not update request status." });
+          }
+
+          res.json({ success: true });
+        });
+      });
+    };
+
+    if (results.length === 0) {
+      // Not in PLAYER table: insert first
+      db.query(insertPlayer, [player_id, defaultJersey, defaultPosition], (err1) => {
+        if (err1) {
+          console.error("Failed to insert into PLAYER:", err1);
+          return res.status(500).json({ success: false, message: "Insert into PLAYER failed." });
+        }
+        addToTeamPlayer();
+      });
+    } else {
+      // Already in PLAYER table: just add to TEAM_PLAYER
+      addToTeamPlayer();
+    }
   });
 });
+
 
 app.post('/api/reject-player', (req, res) => {
   const { player_id, team_id, tr_id } = req.body;
@@ -1118,6 +1152,56 @@ app.delete('/api/tournaments/:tr_id', (req, res) => {
     }
 
     res.json({ success: true, message: "Tournament deleted successfully." });
+  });
+});
+
+
+app.get('/api/unassigned-people', (req, res) => {
+  const sql = `
+    SELECT p.kfupm_id AS player_id, p.name, p.date_of_birth
+    FROM PERSON p
+    WHERE p.kfupm_id NOT IN (SELECT player_id FROM PLAYER);
+  `;
+
+  db.query(sql, (err, result) => {
+    if (err) {
+      console.error("Error fetching unassigned people:", err);
+      return res.status(500).json({ success: false, message: "Database error" });
+    }
+    res.json(result);
+  });
+});
+
+app.post('/api/approve-person-to-team', (req, res) => {
+  const { player_id, team_id, tr_id } = req.body;
+
+  const jersey_no = 0;
+  const position_to_play = 100; // Make sure ID 100 exists in PLAYING_POSITION
+
+  const insertPlayerSQL = `
+    INSERT INTO PLAYER (player_id, jersey_no, position_to_play)
+    VALUES (?, ?, ?);
+  `;
+
+  const insertTeamPlayerSQL = `
+    INSERT INTO TEAM_PLAYER (player_id, team_id, tr_id)
+    VALUES (?, ?, ?);
+  `;
+
+  db.query(insertPlayerSQL, [player_id, jersey_no, position_to_play], (err1) => {
+    if (err1) {
+      console.error("Insert into PLAYER failed:", err1.sqlMessage);
+      return res.status(500).json({ success: false, message: "Could not insert into PLAYER." });
+    }
+
+    db.query(insertTeamPlayerSQL, [player_id, team_id, tr_id], (err2) => {
+      if (err2) {
+        console.error("Insert into TEAM_PLAYER failed:", err2.sqlMessage);
+        return res.status(500).json({ success: false, message: "Could not insert into TEAM_PLAYER." });
+      }
+
+      res.json({ success: true });
+    });
   });
 });
 
