@@ -82,3 +82,9 @@ body {
   display: inline-block;
   margin-bottom: 1rem;
 }
+
+/* ✅ Make the Tournament column wider */
+.approve-table th:nth-child(5),
+.approve-table td:nth-child(5) {
+  width: 220px; /* adjust as needed */
+}

@@ -3,93 +3,133 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Approve Player</title>
-  <link rel="stylesheet" href="ApprovePlayer.css" />
+  <title>Approve Person to Join Team</title>
+  <link rel="stylesheet" href="approvePlayer.css" />
 </head>
 <body>
   <div class="container">
     <a href="AdminHomePage.html" class="back-link">&larr; Home Page</a>
-    <h1 class="page-title">Approve a player to join a team</h1>
+    <h1 class="page-title">Approve a Person to Join a Team</h1>
 
     <table class="approve-table">
       <thead>
         <tr>
-          <th>Team</th>
           <th>KFUPM ID</th>
           <th>Name</th>
           <th>DOB</th>
-          <th>Email</th>
-          <th>Type</th>
-          <th>Department</th>
+          <th>Team</th>
+          <th>Tournament</th>
           <th>Approve</th>
           <th>Reject</th>
         </tr>
       </thead>
-      <tbody id="player-table-body">
-        <!-- Rows will be inserted here -->
+      <tbody id="person-table-body">
+        <!-- Rows inserted dynamically -->
       </tbody>
     </table>
   </div>
 
   <script>
-    async function loadPendingPlayers() {
-      try {
-        const res = await fetch("http://localhost:3000/api/pending-players");
-        const players = await res.json();
-        const tbody = document.getElementById("player-table-body");
+    let teams = [];
+    let tournaments = [];
 
-        players.forEach(p => {
+    async function fetchData() {
+      try {
+        const [peopleRes, teamsRes, tournamentsRes] = await Promise.all([
+          fetch("http://localhost:3000/api/unassigned-people"),
+          fetch("http://localhost:3000/api/teams"),
+          fetch("http://localhost:3000/api/tournaments")
+        ]);
+
+        const people = await peopleRes.json();
+        teams = await teamsRes.json();
+        tournaments = await tournamentsRes.json();
+
+        const tbody = document.getElementById("person-table-body");
+        tbody.innerHTML = "";
+
+        people.forEach(p => {
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td>${p.team_name}</td>
-            <td>${p.kfupm_id}</td>
+            <td>${p.player_id}</td>
             <td>${p.name}</td>
             <td>${p.date_of_birth.split("T")[0]}</td>
-            <td>${p.email}</td>
-            <td>${p.type}</td>
-            <td>${p.department}</td>
-            <td><button class="approve-btn" onclick="handleApprove(${p.kfupm_id}, ${p.team_id}, ${p.tr_id})">Approve to join ${p.team_name}</button></td>
-            <td><button class="reject-btn" onclick="handleReject(${p.kfupm_id}, ${p.team_id}, ${p.tr_id})">Reject to join ${p.team_name}</button></td>
+            <td>
+              <select class="team-select">
+                ${teams.map(t => `<option value="${t.team_id}">${t.team_name}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <select class="tournament-select">
+                ${tournaments.map(t => `<option value="${t.tr_id}">${t.tr_name}</option>`).join('')}
+              </select>
+            </td>
+            <td><button class="approve-btn">Approve</button></td>
+            <td><button class="reject-btn">Reject</button></td>
           `;
+
+          // Approve
+          tr.querySelector(".approve-btn").addEventListener("click", async () => {
+            const team_id = tr.querySelector(".team-select").value;
+            const tr_id = tr.querySelector(".tournament-select").value;
+
+            try {
+              const res = await fetch("http://localhost:3000/api/approve-person-to-team", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  player_id: p.player_id,
+                  team_id: parseInt(team_id),
+                  tr_id: parseInt(tr_id)
+                })
+              });
+
+              const result = await res.json();
+
+              if (result.success) {
+                tr.remove();
+                alert("Person approved and added to team.");
+              } else {
+                alert("Approval failed: " + result.message);
+              }
+            } catch (err) {
+              alert("Server error during approval.");
+              console.error(err);
+            }
+          });
+
+          // Reject
+          tr.querySelector(".reject-btn").addEventListener("click", async () => {
+            try {
+              const res = await fetch("http://localhost:3000/api/reject-player", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ player_id: p.player_id })
+              });
+
+              const result = await res.json();
+
+              if (result.success) {
+                tr.remove();
+                alert("Person rejected.");
+              } else {
+                alert("Rejection failed.");
+              }
+            } catch (err) {
+              alert("Server error during rejection.");
+              console.error(err);
+            }
+          });
+
           tbody.appendChild(tr);
         });
       } catch (err) {
-        alert("Failed to load players");
+        alert("Failed to load data.");
         console.error(err);
       }
     }
 
-    async function handleApprove(player_id, team_id, tr_id) {
-      try {
-        await fetch("http://localhost:3000/api/approve-player", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ player_id, team_id, tr_id })
-        });
-        alert("Player approved");
-        location.reload();
-      } catch (err) {
-        alert("Approval failed");
-        console.error(err);
-      }
-    }
-
-    async function handleReject(player_id, team_id, tr_id) {
-      try {
-        await fetch("http://localhost:3000/api/reject-player", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ player_id, team_id, tr_id })
-        });
-        alert("Player rejected");
-        location.reload();
-      } catch (err) {
-        alert("Rejection failed");
-        console.error(err);
-      }
-    }
-
-    loadPendingPlayers();
+    fetchData();
   </script>
 </body>
 </html>
