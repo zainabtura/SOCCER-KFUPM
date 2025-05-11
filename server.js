@@ -1102,6 +1102,25 @@ app.get('/api/matches-played', (req, res) => {
   });
 });
 
+app.delete('/api/tournaments/:tr_id', (req, res) => {
+  const tr_id = req.params.tr_id;
+
+  const deleteQuery = 'DELETE FROM TOURNAMENT WHERE tr_id = ?';
+
+  db.query(deleteQuery, [tr_id], (err, result) => {
+    if (err) {
+      console.error("❌ Tournament delete error:", err.sqlMessage);
+      return res.status(500).json({ success: false, message: "Database error." });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ success: false, message: "Tournament not found." });
+    }
+
+    res.json({ success: true, message: "Tournament deleted successfully." });
+  });
+});
+
 
 // use welcome.html as the default page
 app.get('/', (req, res) => {
