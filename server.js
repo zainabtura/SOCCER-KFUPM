@@ -17,7 +17,7 @@ app.use(express.static(path.join(__dirname, "SOCCER")));
 app.use(express.json());
 
 
-// MySQL connection
+// MySQL connection to RDS
 const db = mysql.createConnection({
     host: 'database-1.cjaqmykcmj4t.eu-north-1.rds.amazonaws.com',
     user: 'admin',
@@ -170,32 +170,25 @@ app.get('/api/tournament-teams', (req, res) => {
 
 app.post('/api/tournaments', (req, res) => {
   const { tr_id, tr_name, start_date, end_date } = req.body;
-
   if (!tr_id || !tr_name || !start_date || !end_date) {
     return res.status(400).json({ success: false, message: "All fields are required." });
   }
-
   const parsedId = parseInt(tr_id);
   const checkQuery = 'SELECT * FROM TOURNAMENT WHERE tr_id = ? OR tr_name = ?';
-
   db.query(checkQuery, [parsedId, tr_name], (err, results) => {
     if (err) {
       console.error("Check Query Error:", err);
       return res.status(500).json({ success: false, message: "Database error during check." });
     }
-
     if (results.length > 0) {
       return res.status(409).json({ success: false, message: "Tournament ID or name already exists." });
     }
-
     const insertQuery = 'INSERT INTO TOURNAMENT (tr_id, tr_name, start_date, end_date) VALUES (?, ?, ?, ?)';
-
     db.query(insertQuery, [parsedId, tr_name, start_date, end_date], (err2) => {
       if (err2) {
         console.error("Insert Query Error:", err2);
         return res.status(500).json({ success: false, message: "Insert failed." });
       }
-
       console.log("Tournament inserted successfully.");
       return res.json({ success: true });
     });
@@ -204,11 +197,9 @@ app.post('/api/tournaments', (req, res) => {
 
 app.get('/api/matches-by-tournament', (req, res) => {
   const tournamentId = req.query.tr_id;
-
   if (!tournamentId) {
     return res.status(400).json({ success: false, message: "Missing tournament ID" });
   }
-
   const sql = `
   SELECT 
     mp.match_no,
@@ -224,13 +215,11 @@ app.get('/api/matches-by-tournament', (req, res) => {
   WHERE tt1.tr_id = ?
     AND tt2.tr_id = tt1.tr_id;
 `;
-
   db.query(sql, [tournamentId], (err, result) => {
     if (err) {
       console.error("Error fetching matches:", err);
       return res.status(500).json({ success: false, message: "Database error" });
     }
-
     res.json(result);
   });
 });
@@ -239,11 +228,9 @@ app.get('/api/matches-by-tournament', (req, res) => {
 // Get teams NOT already in a specific tournament
 app.get('/api/teams-not-in-tournament', (req, res) => {
   const { tr_id } = req.query;
-
   if (!tr_id) {
     return res.status(400).json({ success: false, message: "Missing tournament ID" });
   }
-
   const sql = `
     SELECT team_id, team_name 
     FROM TEAM 
@@ -253,13 +240,11 @@ app.get('/api/teams-not-in-tournament', (req, res) => {
       WHERE tr_id = ?
     );
   `;
-
   db.query(sql, [tr_id], (err, result) => {
     if (err) {
       console.error("Database error:", err);
       return res.status(500).json({ success: false, message: "Query failed" });
     }
-
     res.json(result);
   });
 });
@@ -267,18 +252,15 @@ app.get('/api/teams-not-in-tournament', (req, res) => {
 // Add a team to a tournament (with check to prevent duplicates)
 app.post('/api/tournament-team', (req, res) => {
   const { tr_id, team_id } = req.body;
-
   if (!tr_id || !team_id) {
     return res.status(400).json({ success: false, message: "Missing fields." });
   }
-
   const checkQuery = 'SELECT * FROM TOURNAMENT_TEAM WHERE tr_id = ? AND team_id = ?';
   db.query(checkQuery, [tr_id, team_id], (err, results) => {
     if (err) return res.status(500).json({ success: false, message: "Database error." });
     if (results.length > 0) {
       return res.status(409).json({ success: false, message: "Team already added to tournament." });
     }
-
     const insertQuery = `
       INSERT INTO TOURNAMENT_TEAM (
         team_id, tr_id, team_group, match_played, won, draw, lost, goal_for, goal_against, goal_diff, points, group_position
@@ -309,7 +291,6 @@ app.get('/api/topScorersByTournament', (req, res) => {
         GROUP BY t.tr_id, pr.name, tm.team_name, p.player_id
         ORDER BY t.tr_id, total_goals DESC;
     `;
-
     db.query(sql, (err, result) => {
         if (err) {
             console.error("Top scorers query error:", err);
@@ -364,36 +345,30 @@ app.post('/api/assign-captain', (req, res) => {
   if (!match_no || !team_id || !player_id) {
     return res.status(400).json({ success: false, message: "Missing data" });
   }
-
   const checkSql = `
     SELECT * FROM MATCH_CAPTAIN
     WHERE match_no = ? AND team_id = ?
   `;
-
   db.query(checkSql, [match_no, team_id], (checkErr, result) => {
     if (checkErr) {
       console.error("Error checking existing captain:", checkErr);
       return res.status(500).json({ success: false, message: "Database error during check" });
     }
-
     if (result.length > 0) {
       return res.status(400).json({
         success: false,
         message: "Captain already assigned for this team in this match"
       });
     }
-
     const insertSql = `
       INSERT INTO MATCH_CAPTAIN (match_no, team_id, player_captain)
       VALUES (?, ?, ?)
     `;
-
     db.query(insertSql, [match_no, team_id, player_id], (insertErr) => {
       if (insertErr) {
         console.error("Captain assignment failed:", insertErr);
         return res.status(500).json({ success: false, message: "Database error" });
       }
-
       res.json({ success: true });
     });
   });
@@ -412,7 +387,6 @@ app.get('/api/match-list', (req, res) => {
     JOIN TEAM t2 ON mp.team_id2 = t2.team_id
     ORDER BY mp.match_no;
   `;
-
   db.query(sql, (err, result) => {
     if (err) {
       console.error("Error fetching match list:", err);
@@ -424,11 +398,9 @@ app.get('/api/match-list', (req, res) => {
 
 app.get('/api/team-members-in-match', (req, res) => {
   const { match_no, team_id } = req.query;
-
   if (!match_no || !team_id) {
     return res.status(400).json({ success: false, message: "Missing match_no or team_id" });
   }
-
   const sql = `
     SELECT p.player_id, pr.name
     FROM TEAM_PLAYER tp
@@ -441,7 +413,6 @@ app.get('/api/team-members-in-match', (req, res) => {
       WHERE mp.match_no = ?
     );
   `;
-
   db.query(sql, [team_id, match_no], (err, result) => {
     if (err) {
       console.error("Error fetching team members in match:", err);
@@ -467,7 +438,6 @@ app.get('/api/pending-players', (req, res) => {
     JOIN TEAM t ON r.team_id = t.team_id
     WHERE r.status = 'pending';
   `;
-
   db.query(sql, (err, result) => {
     if (err) {
       console.error("Error fetching pending players:", err);
@@ -479,7 +449,6 @@ app.get('/api/pending-players', (req, res) => {
 
 app.post('/api/approve-player', (req, res) => {
   const { player_id, team_id, tr_id } = req.body;
-
   const insertSql = `
     INSERT INTO TEAM_PLAYER (player_id, team_id, tr_id) VALUES (?, ?, ?)
   `;
@@ -487,7 +456,6 @@ app.post('/api/approve-player', (req, res) => {
     UPDATE REGISTRATION_REQUEST SET status = 'approved'
     WHERE player_id = ? AND team_id = ? AND tr_id = ?
   `;
-
   db.query(insertSql, [player_id, team_id, tr_id], (err) => {
     if (err) return res.status(500).json({ error: 'Insert failed' });
 
@@ -504,7 +472,6 @@ app.post('/api/reject-player', (req, res) => {
     UPDATE REGISTRATION_REQUEST SET status = 'rejected'
     WHERE player_id = ? AND team_id = ? AND tr_id = ?
   `;
-
   db.query(updateStatus, [player_id, team_id, tr_id], (err) => {
     if (err) return res.status(500).json({ error: 'Update failed' });
     res.json({ success: true });
@@ -525,7 +492,6 @@ app.get('/api/redCards', (req, res) => {
         GROUP BY pg.player_gk, per.name, tm.team_name
         ORDER BY red_card_count DESC;
     `;
-
     db.query(sql, (err, result) => {
         if (err) {
             console.error("Red cards query error:", err.sqlMessage);
@@ -538,11 +504,9 @@ app.get('/api/redCards', (req, res) => {
 // view players of each team
 app.get('/api/teamMembers', (req, res) => {
     const teamId = req.query.team_id;
-
     if (!teamId) {
         return res.status(400).json({ success: false, message: "Missing team_id" });
     }
-
     const sql = `
         SELECT
             pr.name,
@@ -556,7 +520,6 @@ app.get('/api/teamMembers', (req, res) => {
                  JOIN TOURNAMENT t ON tp.tr_id = t.tr_id
         WHERE tp.team_id = ?;
     `;
-
     db.query(sql, [teamId], (err, result) => {
         if (err) {
             console.error("Team members query error:", err.sqlMessage);
@@ -569,19 +532,15 @@ app.get('/api/teamMembers', (req, res) => {
 //admin login authentication
 app.post('/api/admin-login', (req, res) => {
     const { username, password } = req.body;
-
     if (!username || !password) {
         return res.status(400).json({ success: false, message: "Username and password are required." });
     }
-
     const sql = `SELECT * FROM ADMIN WHERE admin_username = ? AND admin_password = ?`;
-
     db.query(sql, [username, password], (err, result) => {
         if (err) {
             console.error("Admin login query error:", err);
             return res.status(500).json({ success: false, message: "Database error." });
         }
-
         if (result.length > 0) {
             res.json({ success: true });
         } else {
@@ -593,13 +552,11 @@ app.post('/api/admin-login', (req, res) => {
 // Tournament basic info
 app.get('/api/tournament/:id', (req, res) => {
   const { id } = req.params;
-
   const sql = `
     SELECT tr_id, tr_name, start_date, end_date
     FROM TOURNAMENT
     WHERE tr_id = ?
   `;
-
   db.query(sql, [id], (err, result) => {
     if (err) {
       console.error("Error fetching tournament:", err);
@@ -615,7 +572,6 @@ app.get('/api/tournament/:id', (req, res) => {
 // Participating teams
 app.get('/api/tournament-details/:tr_id', (req, res) => {
   const { tr_id } = req.params;
-
   const sql = `
     SELECT 
       t.team_id,
@@ -632,7 +588,6 @@ app.get('/api/tournament-details/:tr_id', (req, res) => {
     JOIN TEAM t ON tt.team_id = t.team_id
     WHERE tt.tr_id = ?
   `;
-
   db.query(sql, [tr_id], (err, results) => {
     if (err) {
       console.error("Error loading tournament details:", err);
@@ -641,7 +596,6 @@ app.get('/api/tournament-details/:tr_id', (req, res) => {
     res.json(results);
   });
 });
-
 
 
 app.get('/api/match-results-with-scorers', (req, res) => {
@@ -736,7 +690,6 @@ app.get('/api/match-venues', (req, res) => {
   });
 });
 
-
 app.get('/api/match-referees', (req, res) => {
   const sql = `
     SELECT 
@@ -753,13 +706,11 @@ app.get('/api/match-referees', (req, res) => {
     JOIN PERSON per ON ms.support_id = per.kfupm_id
     ORDER BY mp.match_no, ms.support_type;
   `;
-
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Error loading referees:", err);
       return res.status(500).json({ error: "Failed to load referee data" });
     }
-
     res.json(results);
   });
 });
@@ -777,7 +728,6 @@ app.get('/api/players-in-match-with-email', (req, res) => {
     JOIN PERSON pr ON pr.kfupm_id = tp.player_id
     WHERE mp.match_no = ?;
   `;
-
     db.query(sql, [match_no], (err, result) => {
         if (err) {
             console.error("Error fetching players with email:", err);
@@ -787,13 +737,12 @@ app.get('/api/players-in-match-with-email', (req, res) => {
     });
 });
 
+// emailing
 app.post('/api/send-reminder-emails', async (req, res) => {
     const { match_no, players } = req.body;
-
     if (!match_no || !players || !Array.isArray(players)) {
         return res.status(400).json({ success: false, message: "Missing or invalid data." });
     }
-
     const matchInfoSql = `
         SELECT t1.team_name AS team1, t2.team_name AS team2
         FROM MATCH_PLAYED mp
@@ -801,19 +750,15 @@ app.post('/api/send-reminder-emails', async (req, res) => {
                  JOIN TEAM t2 ON mp.team_id2 = t2.team_id
         WHERE mp.match_no = ?
     `;
-
     db.query(matchInfoSql, [match_no], async (matchErr, matchResult) => {
         if (matchErr) {
             console.error("Match lookup error:", matchErr);
             return res.status(500).json({ success: false, message: "Failed to retrieve match info." });
         }
-
         if (matchResult.length === 0) {
             return res.status(404).json({ success: false, message: "Match not found." });
         }
-
         const { team1, team2 } = matchResult[0];
-
         // Email setup
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -822,7 +767,6 @@ app.post('/api/send-reminder-emails', async (req, res) => {
                 pass: 'atmr qfea lpog ccem'
             }
         });
-
         const subject = `Reminder: Match #${match_no} – ${team1} vs ${team2}`;
         const body = (name) => `
 Dear ${name},
@@ -835,7 +779,6 @@ Please arrive on time and be prepared. Good luck!
 
 – Tournament Admin Team
 `;
-
         try {
             const emailPromises = players.map(player => {
                 const mailOptions = {
@@ -856,7 +799,7 @@ Please arrive on time and be prepared. Good luck!
     });
 });
 
-// Backend Update (Node.js + MySQL)
+
 app.get('/api/pending-matches', (req, res) => {
   const sql = `
     SELECT 
@@ -874,10 +817,9 @@ app.get('/api/pending-matches', (req, res) => {
 
   db.query(sql, (err, results) => {
     if (err) {
-      console.error("🔴 SQL Error in /api/pending-matches:", err.sqlMessage);
+      console.error("SQL Error in /api/pending-matches:", err.sqlMessage);
       return res.status(500).json({ error: "Failed to load matches" });
     }
-
     res.json(results);
   });
 });
@@ -885,21 +827,17 @@ app.get('/api/pending-matches', (req, res) => {
 
 app.post('/api/enter-result', (req, res) => {
   const { match_no, team1_id, team1_goals, team2_id, team2_goals } = req.body;
-
   const insertResults = `
     INSERT INTO match_details (match_no, team_id, win_lose, decided_by, goal_score, penalty_score, player_gk)
     VALUES (?, ?, ?, 'N', ?, 0, 1001), (?, ?, ?, 'N', ?, 0, 1001)
   `;
-
   const team1_result = team1_goals > team2_goals ? 'W' : team1_goals < team2_goals ? 'L' : 'D';
   const team2_result = team2_goals > team1_goals ? 'W' : team2_goals < team1_goals ? 'L' : 'D';
-
   db.query(insertResults, [match_no, team1_id, team1_result, team1_goals, match_no, team2_id, team2_result, team2_goals], (err) => {
     if (err) {
       console.error('Error inserting match result:', err);
       return res.json({ success: false });
     }
-
     res.json({ success: true });
   });
 });
@@ -917,7 +855,6 @@ app.get('/api/upcoming-matches', (req, res) => {
     WHERE mp.play_date > CURDATE()
     ORDER BY mp.play_date ASC
   `;
-
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Error fetching upcoming matches:", err);
@@ -942,7 +879,6 @@ app.get('/api/yellowCards', (req, res) => {
     GROUP BY pb.player_id, per.name, tm.team_name
     ORDER BY yellow_card_count DESC;
   `;
-
   db.query(sql, (err, result) => {
     if (err) {
       console.error("Yellow cards query error:", err.sqlMessage);
@@ -955,7 +891,6 @@ app.get('/api/yellowCards', (req, res) => {
 
 app.get('/api/tournaments', (req, res) => {
   const sql = `SELECT tr_id, tr_name FROM TOURNAMENT ORDER BY tr_name`;
-
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Error fetching tournaments:", err);
@@ -1009,7 +944,6 @@ app.get('/api/refereeMatches', (req, res) => {
 
 app.get('/api/goals-by-team/:tr_id', (req, res) => {
   const tr_id = req.params.tr_id;
-
   const sql = `
     SELECT 
       t.team_name, 
@@ -1021,7 +955,6 @@ app.get('/api/goals-by-team/:tr_id', (req, res) => {
     GROUP BY t.team_name
     ORDER BY total_goals DESC;
   `;
-
   db.query(sql, [tr_id], (err, results) => {
     if (err) {
       console.error("Goal stats error:", err.sqlMessage);
@@ -1044,11 +977,9 @@ app.get('/api/tournaments', (req, res) => {
 
 app.get('/api/players-without-goals', (req, res) => {
   const { tr_id } = req.query;
-
   if (!tr_id) {
     return res.status(400).json({ success: false, message: "Missing tournament ID" });
   }
-
   const sql = `
     SELECT 
       pr.name AS player_name,
@@ -1066,7 +997,6 @@ app.get('/api/players-without-goals', (req, res) => {
       )
     ORDER BY pr.name;
   `;
-
   db.query(sql, [tr_id, tr_id], (err, result) => {
     if (err) {
       console.error("Players without goals query error:", err.sqlMessage);
@@ -1092,7 +1022,6 @@ app.get('/api/matches-played', (req, res) => {
     GROUP BY p.player_id, per.name, tm.team_name
     ORDER BY match_count DESC;
   `;
-
   db.query(sql, (err, results) => {
     if (err) {
       console.error("Matches played query error:", err.sqlMessage);
@@ -1122,10 +1051,11 @@ app.delete('/api/tournaments/:tr_id', (req, res) => {
 });
 
 
-// use welcome.html as the default page
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'SOCCER', 'welcome.html'));
 });
+
 
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
